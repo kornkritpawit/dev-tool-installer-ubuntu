@@ -37,15 +37,13 @@ dev-tool-installer-ubuntu/
 │   ├── nodejs.sh                       # nvm, node 20, npm, pnpm, nodemon, ts
 │   ├── dotnet.sh                       # dotnet-sdk-10.0
 │   ├── devops.sh                       # docker-ce, docker-compose, daemon config
-│   ├── editors.sh                      # VS Code + extensions + settings
+│   ├── editors.sh                      # VS Code + settings
 │   ├── terminal-shell.sh              # oh-my-zsh, fonts, GNOME Terminal, profiles
 │   ├── applications.sh                 # Postman, RustDesk, WireGuard, browsers
 │   └── desktop-settings.sh            # GNOME settings, browser policies
 ├── config/
 │   ├── .gitkeep                       # (paradox.omp.json removed — Oh My Zsh uses ~/.oh-my-zsh themes)
 │   ├── vscode-settings.json           # VS Code user settings template
-│   ├── vscode-extensions.txt          # VS Code extensions list (1 per line)
-│   ├── vscode-extensions-uninstall.txt # Extensions to remove
 │   └── docker-daemon.json             # Docker daemon config template
 ├── font/
 │   └── THSARABUN_PSK.zip             # Bundled TH Sarabun PSK font
@@ -143,7 +141,6 @@ declare -a TOOLS=(
     "devops:docker_compose:Docker Compose:false"
     "devops:docker_config:Docker Configuration:false"
     "editors:vscode:Visual Studio Code:false"
-    "editors:vscode_extensions:VS Code Extensions:true"
     "editors:vscode_settings:VS Code Settings:true"
     "terminal_shell:oh_my_zsh:Oh My Zsh:false"
     "terminal_shell:font_cascadia:CascadiaMono Nerd Font:true"
@@ -228,22 +225,21 @@ tool_install() {
 | 21 | Docker Compose | docker-compose-plugin | DevOps | Docker APT repo | `docker compose version` |
 | 22 | Docker Configuration | daemon.json | DevOps | config file | `[ -f /etc/docker/daemon.json ]` |
 | 23 | VS Code | code | Editors | Microsoft APT repo | `command -v code` |
-| 24 | 31 Extensions | same extensions | Editors | code --install-extension | `code --list-extensions` |
-| 25 | VS Code Settings | settings.json | Editors | config file copy/merge | file existence check |
-| 26 | Oh My Zsh | oh-my-zsh | Terminal | oh-my-zsh install script | `[ -d "$HOME/.oh-my-zsh" ]` |
-| 27 | CascadiaMono NF | CascadiaMono NF | Terminal | download + fc-cache | `fc-list \| grep CaskaydiaMono` |
-| 28 | TH Sarabun | TH Sarabun PSK | Terminal | bundled zip + fc-cache | `fc-list \| grep Sarabun` |
-| 29 | Windows Terminal config | GNOME Terminal config | Terminal | gsettings/dconf | always run |
-| 30 | PowerShell profile | .zshrc (oh-my-zsh config) | Terminal | shell config append | always run |
-| 31 | Postman | Postman | Applications | snap | `snap list postman` |
-| 32 | RustDesk | RustDesk | Applications | .deb download | `command -v rustdesk` |
-| 33 | WireGuard | wireguard | Applications | apt | `command -v wg` |
-| 34 | Chrome | google-chrome-stable | Applications | .deb from Google | `command -v google-chrome-stable` |
-| 35 | Firefox | firefox | Applications | apt (pre-installed) | `command -v firefox` |
-| 36 | Brave | brave-browser | Applications | Brave APT repo | `command -v brave-browser` |
-| 37 | Opera | opera-stable | Applications | Opera APT repo | `command -v opera` |
-| 38 | Explorer Settings | GNOME Settings | Desktop | gsettings | always run |
-| 39 | Browser Settings | Browser Policies | Desktop | JSON policy files | always run |
+| 24 | VS Code Settings | settings.json | Editors | config file copy/merge | file existence check |
+| 25 | Oh My Zsh | oh-my-zsh | Terminal | oh-my-zsh install script | `[ -d "$HOME/.oh-my-zsh" ]` |
+| 26 | CascadiaMono NF | CascadiaMono NF | Terminal | download + fc-cache | `fc-list \| grep CaskaydiaMono` |
+| 27 | TH Sarabun | TH Sarabun PSK | Terminal | bundled zip + fc-cache | `fc-list \| grep Sarabun` |
+| 28 | Windows Terminal config | GNOME Terminal config | Terminal | gsettings/dconf | always run |
+| 29 | PowerShell profile | .zshrc (oh-my-zsh config) | Terminal | shell config append | always run |
+| 30 | Postman | Postman | Applications | snap | `snap list postman` |
+| 31 | RustDesk | RustDesk | Applications | .deb download | `command -v rustdesk` |
+| 32 | WireGuard | wireguard | Applications | apt | `command -v wg` |
+| 33 | Chrome | google-chrome-stable | Applications | .deb from Google | `command -v google-chrome-stable` |
+| 34 | Firefox | firefox | Applications | apt (pre-installed) | `command -v firefox` |
+| 35 | Brave | brave-browser | Applications | Brave APT repo | `command -v brave-browser` |
+| 36 | Opera | opera-stable | Applications | Opera APT repo | `command -v opera` |
+| 37 | Explorer Settings | GNOME Settings | Desktop | gsettings | always run |
+| 38 | Browser Settings | Browser Policies | Desktop | JSON policy files | always run |
 
 ### 4.2 Skipped Tools (ไม่มีบน Linux หรือไม่จำเป็น)
 
@@ -316,7 +312,7 @@ flowchart TD
 │  [*] Node.js Development      4 tools  (4 new)    │
 │  [ ] .NET Development         1 tool   (1 new)    │
 │  [*] DevOps Tools             3 tools  (3 new)    │
-│  [*] Editors and IDEs         3 items  (1 new)    │
+│  [*] Editors and IDEs         2 items  (1 new)    │
 │  [*] Terminal and Shell       5 items  (0 new)    │
 │  [*] Applications             7 tools  (5 new)    │
 │  [ ] Desktop Settings         2 items  (0 new)    │
@@ -575,7 +571,6 @@ editors__vscode_settings__install() {
 | Tool | Primary | Fallback | Detection | Post-Config |
 |------|---------|----------|-----------|-------------|
 | VS Code | Microsoft APT repo + `apt install code` | snap install code --classic | `command -v code` | — |
-| VS Code Extensions | `code --install-extension` loop | — | `code --list-extensions` | remove unwanted extensions first |
 | VS Code Settings | jq merge into settings.json | cp template | file check | — |
 
 ### 7.7 Terminal and Shell
@@ -802,7 +797,6 @@ ensure_sudo() {
 | nvm install | user-space (~/.nvm) |
 | npm install -g | user-space via nvm |
 | oh-my-zsh install | user-space (~/.oh-my-zsh) |
-| VS Code extensions | user-space |
 | Font install to ~/.local | user home directory |
 | .bashrc/.zshrc edit | user home directory |
 | gsettings | user dconf database |
@@ -817,7 +811,6 @@ ensure_sudo() {
 |------|--------|-------------|---------------|
 | — (oh-my-zsh) | oh-my-zsh manages themes via `~/.oh-my-zsh/themes/` | `~/.zshrc` (ZSH_THEME setting) | oh-my-zsh built-in |
 | `config/vscode-settings.json` | bundled | `~/.config/Code/User/settings.json` | jq merge (keep existing) |
-| `config/vscode-extensions.txt` | bundled | — (used as input list) | — |
 | `config/docker-daemon.json` | bundled | `/etc/docker/daemon.json` | jq merge (sudo) |
 | `font/THSARABUN_PSK.zip` | bundled | `~/.local/share/fonts/` | extract |
 
@@ -909,7 +902,6 @@ desktop_settings__gnome_settings__install() {
 | Shell profile | Marker-based block replacement |
 | Font install | fc-list check before download |
 | Docker group | `groups \| grep docker` check |
-| VS Code extensions | `code --list-extensions` check |
 
 ---
 
@@ -945,9 +937,8 @@ graph TB
     subgraph Config
         O[oh-my-zsh themes]
         P[config/vscode-settings.json]
-        Q[config/vscode-extensions.txt]
-        R[config/docker-daemon.json]
-        S[font/THSARABUN_PSK.zip]
+        Q[config/docker-daemon.json]
+        R[font/THSARABUN_PSK.zip]
     end
     
     A --> B
@@ -964,10 +955,9 @@ graph TB
     A --> M
     A --> N
     K --> P
-    K --> Q
     L --> O
-    L --> S
-    J --> R
+    L --> R
+    J --> Q
 ```
 
 ### 13.2 Install Flow Sequence
@@ -1080,11 +1070,11 @@ SKIP_TOOLS="opera brave"
 | Node.js Development | 4 | 0 |
 | .NET Development | 1 | 0 |
 | DevOps Tools | 3 | 0 |
-| Editors and IDEs | 3 | 2 |
+| Editors and IDEs | 2 | 1 |
 | Terminal and Shell | 5 | 3 |
 | Applications | 7 | 0 |
 | Desktop Settings | 2 | 2 |
-| **รวม** | **39** | **7** |
+| **รวม** | **38** | **6** |
 
 เทียบกับ Windows: 28 tools (ไม่นับ WSL, Notepad++, Windows Terminal, PowerShell 7 ที่ skip)  
-Ubuntu version: 39 tools (เพิ่ม System Essentials 9 ตัว + แยก items ที่ Windows รวมกัน)
+Ubuntu version: 38 tools (เพิ่ม System Essentials 9 ตัว + แยก items ที่ Windows รวมกัน)

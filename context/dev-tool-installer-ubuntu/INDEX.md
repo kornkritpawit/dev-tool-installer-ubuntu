@@ -13,13 +13,13 @@
 - [`lib/registry.sh`](../../lib/registry.sh) — Tool registry: categories, tool metadata, registration
 - [`lib/tui.sh`](../../lib/tui.sh) — TUI functions: whiptail wrappers for interactive flow
 
-### Installer Modules (9 categories, 41 tools)
+### Installer Modules (9 categories, 39 tools)
 - [`installers/system-essentials.sh`](../../installers/system-essentials.sh) — 🔧 System Essentials (9 tools): build-essential, curl, wget, git, unzip, zip, software-properties-common, apt-transport-https, ca-certificates
 - [`installers/python.sh`](../../installers/python.sh) — 🐍 Python Development (5 tools): Python 3, pip, Poetry, uv, build dependencies
 - [`installers/nodejs.sh`](../../installers/nodejs.sh) — 📦 Node.js Development (4 tools): NVM, Node.js 20 LTS, npm, dev tools
 - [`installers/dotnet.sh`](../../installers/dotnet.sh) — 🟣 .NET Development (1 tool): .NET SDK latest LTS
 - [`installers/devops.sh`](../../installers/devops.sh) — 🐳 DevOps Tools (3 tools): Docker Engine, Docker Compose, Docker Configuration
-- [`installers/editors.sh`](../../installers/editors.sh) — 📝 Editors and IDEs (3 tools): VS Code, 32 extensions, settings
+- [`installers/editors.sh`](../../installers/editors.sh) — 📝 Editors and IDEs (2 tools): VS Code, settings
 - [`installers/terminal-shell.sh`](../../installers/terminal-shell.sh) — 🖥️ Terminal and Shell (6 tools): Oh My Zsh, Powerlevel10k, Oh My Zsh Config, CaskaydiaCove font, TH Sarabun PSK, GNOME Terminal
 - [`installers/applications.sh`](../../installers/applications.sh) — 📦 Applications (7 tools): Postman, RustDesk, WireGuard, Chrome, Firefox, Brave, Opera
 - [`installers/desktop-settings.sh`](../../installers/desktop-settings.sh) — 🖥️ Desktop Settings (3 tools): GNOME settings, browser privacy policies, LibreOffice config
@@ -58,3 +58,6 @@
 - [2026-04-01/1003-add-modelharbor-extension.md](journal/2026-04-01/1003-add-modelharbor-extension.md) — Add ModelHarbor VS Code extension
 - [2026-04-01/1020-fix-vscode-extension-timeout.md](journal/2026-04-01/1020-fix-vscode-extension-timeout.md) — Fix VS Code extension install timeout
 - [2026-04-01/1100-performance-optimization.md](journal/2026-04-01/1100-performance-optimization.md) — Performance optimization: is_installed() cache, filesystem checks, snap fast path, fc-list cache
+- [2026-04-01/1155-fix-vscode-cli-hang.md](journal/2026-04-01/1155-fix-vscode-cli-hang.md) — Fix VS Code CLI hang: 2-layer timeout strategy for `su -` + `code` CLI calls
+- [2026-04-01/1215-remove-vscode-extensions.md](journal/2026-04-01/1215-remove-vscode-extensions.md) — Remove VS Code Extensions: ลบ extension installation ทั้งหมดเนื่องจาก CLI hang issues
+- [2026-04-01/1235-fix-ohmyzsh-libreoffice.md](journal/2026-04-01/1235-fix-ohmyzsh-libreoffice.md) — Fix Oh My Zsh plugin overwrite (additive approach + .zshrc backup) + LibreOffice always_run=false

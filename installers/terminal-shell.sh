@@ -175,6 +175,12 @@ terminal_shell__oh_my_zsh_config__install() {
 
     local zshrc="${REAL_HOME}/.zshrc"
 
+    # ---- Backup .zshrc before making changes ----
+    if [ -f "$zshrc" ]; then
+        cp "$zshrc" "${zshrc}.bak.$(date +%Y%m%d%H%M%S)" 2>/dev/null || true
+        log_info "Backed up .zshrc"
+    fi
+
     # ---- Step 1: Verify .zshrc exists (created by Oh My Zsh installer) ----
     if [ ! -f "$zshrc" ]; then
         log_error ".zshrc not found — install Oh My Zsh first"
@@ -190,14 +196,31 @@ terminal_shell__oh_my_zsh_config__install() {
     fi
     log_success "Theme set to Powerlevel10k"
 
-    # ---- Step 3: Configure plugins ----
+    # ---- Step 3: Configure plugins (additive — preserves user-added plugins) ----
     log_info "Configuring plugins..."
+    local required_plugins=(git zsh-autosuggestions zsh-syntax-highlighting docker docker-compose kubectl)
+
     if grep -q '^plugins=' "$zshrc" 2>/dev/null; then
-        sed -i 's/^plugins=.*/plugins=(git zsh-autosuggestions zsh-syntax-highlighting docker docker-compose kubectl)/' "$zshrc"
+        # Read current plugins from .zshrc
+        local current_plugins
+        current_plugins=$(grep '^plugins=' "$zshrc" | sed 's/plugins=(\(.*\))/\1/' | xargs)
+
+        # Add only missing plugins
+        local updated_plugins="$current_plugins"
+        for plugin in "${required_plugins[@]}"; do
+            if ! echo " $current_plugins " | grep -qw "$plugin"; then
+                updated_plugins="$updated_plugins $plugin"
+            fi
+        done
+
+        # Clean up whitespace and update
+        updated_plugins=$(echo "$updated_plugins" | xargs)
+        sed -i "s/^plugins=.*/plugins=(${updated_plugins})/" "$zshrc"
     else
-        echo 'plugins=(git zsh-autosuggestions zsh-syntax-highlighting docker docker-compose kubectl)' >> "$zshrc"
+        # No plugins= line exists — add one with required plugins
+        echo "plugins=(${required_plugins[*]})" >> "$zshrc"
     fi
-    log_success "Plugins configured"
+    log_success "Plugins configured (additive — existing plugins preserved)"
 
     # ---- Step 4: PATH migration — add essential PATHs to .zshrc ----
     log_info "Migrating essential PATH entries to .zshrc..."

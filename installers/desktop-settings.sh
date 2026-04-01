@@ -518,4 +518,4 @@ desktop_settings__libreoffice_config__install() {
 
 register_tool "desktop_settings" "gnome_settings" "GNOME Desktop Settings" "true"
 register_tool "desktop_settings" "browser_policies" "Browser Privacy Policies" "true"
-register_tool "desktop_settings" "libreoffice_config" "LibreOffice Configuration" "true"
+register_tool "desktop_settings" "libreoffice_config" "LibreOffice Configuration" "false"

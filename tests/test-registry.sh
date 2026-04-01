@@ -4,7 +4,7 @@
 # ==============================================================================
 # Sources all project files and validates:
 # - Total number of categories = 9
-# - Total number of tools = 40
+# - Total number of tools = 39
 # - Each category has the expected tool count
 #
 # Usage: bash tests/test-registry.sh
@@ -25,13 +25,13 @@ declare -A EXPECTED_COUNTS=(
     ["nodejs"]=4
     ["dotnet"]=1
     ["devops"]=3
-    ["editors"]=3
+    ["editors"]=2
     ["terminal_shell"]=5
     ["applications"]=7
     ["desktop_settings"]=3
 )
 EXPECTED_CATEGORIES=9
-EXPECTED_TOTAL=40
+EXPECTED_TOTAL=39
 
 # Create temp script that sources project files with mocks and reports counts
 TMPSCRIPT=$(mktemp /tmp/test-registry-XXXXXX.sh)
