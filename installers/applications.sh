@@ -10,7 +10,7 @@
 # Tools (7):
 #   postman   — Postman (API testing tool via snap)
 #   rustdesk  — RustDesk (remote desktop via .deb download)
-#   wireguard — WireGuard (VPN via apt)
+#   wireguard — WireGuard VPN with GUI (NetworkManager integration)
 #   chrome    — Google Chrome (browser via .deb download)
 #   firefox   — Mozilla Firefox (browser via apt/snap)
 #   brave     — Brave Browser (browser via APT repo)
@@ -143,32 +143,33 @@ applications__rustdesk__install() {
 
 # Description for WireGuard
 applications__wireguard__description() {
-    echo "WireGuard — fast, modern VPN tunnel"
+    echo "WireGuard VPN with GUI (NetworkManager integration)"
 }
 
-# Check if WireGuard is installed
+# Check if WireGuard is installed (CLI tools + GNOME NetworkManager plugin)
 applications__wireguard__is_installed() {
-    is_command_available "wg"
+    command -v wg &>/dev/null && dpkg -l network-manager-wireguard-gnome &>/dev/null 2>&1
 }
 
-# Install WireGuard via apt
+# Install WireGuard with GUI via apt
 applications__wireguard__install() {
-    log_info "Installing WireGuard..."
+    log_info "Installing WireGuard VPN with GUI..."
 
-    if is_command_available "wg"; then
-        log_success "WireGuard is already installed"
+    # Check if fully installed (CLI + GUI)
+    if command -v wg &>/dev/null && dpkg -l network-manager-wireguard-gnome &>/dev/null 2>&1; then
+        log_success "WireGuard (CLI + GUI) is already installed"
         return 0
     fi
 
     ensure_apt_updated
-    run_sudo apt-get install -y wireguard wireguard-tools || {
+    run_sudo apt-get install -y wireguard wireguard-tools network-manager-wireguard-gnome || {
         log_error "Failed to install WireGuard"
         return 1
     }
 
     # Verify installation
-    if is_command_available "wg"; then
-        log_success "WireGuard installed successfully"
+    if command -v wg &>/dev/null && dpkg -l network-manager-wireguard-gnome &>/dev/null 2>&1; then
+        log_success "WireGuard VPN with GUI installed successfully"
         return 0
     else
         log_error "WireGuard installation could not be verified"

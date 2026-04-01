@@ -41,7 +41,7 @@ chmod +x install.sh
 | 🐳 DevOps Tools | 3 | Docker Engine, Docker Compose, Docker Configuration (daemon.json) |
 | 📝 Editors and IDEs | 3 | VS Code + 31 extensions + settings.json |
 | 🖥️ Terminal and Shell | 5 | Oh My Zsh, Oh My Zsh Config, CaskaydiaMono Nerd Font, TH Sarabun PSK, GNOME Terminal config |
-| 📦 Applications | 7 | Postman, RustDesk, WireGuard, Chrome, Firefox, Brave, Opera |
+| 📦 Applications | 7 | Postman, RustDesk, WireGuard VPN+GUI, Chrome, Firefox, Brave, Opera |
 | 🖥️ Desktop Settings | 3 | GNOME desktop settings, browser privacy policies, LibreOffice configuration |
 
 **Total: 40 tools** across 9 categories.
