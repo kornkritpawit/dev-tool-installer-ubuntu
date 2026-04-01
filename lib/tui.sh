@@ -328,6 +328,8 @@ tui_run_installation() {
             log_success "Installed: ${tool_name}"
             INSTALL_SUCCESS=$((INSTALL_SUCCESS + 1))
             SUCCESS_TOOLS+=("$tool_name")
+            # Clear cache for this tool so next check gets fresh result
+            registry_clear_tool_cache "$category" "$tool"
         else
             log_error "Failed: ${tool_name}"
             INSTALL_FAILED=$((INSTALL_FAILED + 1))

@@ -18,6 +18,18 @@
 
 # REAL_USER and REAL_HOME are defined in lib/core.sh
 
+# ------------------------------------------------------------------------------
+# fc-list cache — avoid running fc-list multiple times (expensive syscall)
+# ------------------------------------------------------------------------------
+_FC_LIST_CACHE=""
+
+_get_fc_list() {
+    if [ -z "$_FC_LIST_CACHE" ]; then
+        _FC_LIST_CACHE=$(fc-list 2>/dev/null)
+    fi
+    echo "$_FC_LIST_CACHE"
+}
+
 # ==============================================================================
 # Tool: oh_my_zsh
 # ==============================================================================
@@ -258,7 +270,7 @@ terminal_shell__font_cascadia__description() {
 
 # Check if CaskaydiaCove Nerd Font is installed
 terminal_shell__font_cascadia__is_installed() {
-    fc-list 2>/dev/null | grep -qi "CaskaydiaCove"
+    _get_fc_list | grep -qi "CaskaydiaCove"
 }
 
 # Download and install CaskaydiaCove Nerd Font from GitHub releases
@@ -334,7 +346,7 @@ terminal_shell__font_thsarabun__description() {
 
 # Check if TH Sarabun PSK is installed
 terminal_shell__font_thsarabun__is_installed() {
-    fc-list 2>/dev/null | grep -qi "Sarabun"
+    _get_fc_list | grep -qi "Sarabun"
 }
 
 # Install TH Sarabun PSK from bundled zip

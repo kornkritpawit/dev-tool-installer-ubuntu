@@ -55,3 +55,6 @@
 - [2026-04-01/0230-oh-my-zsh-migration.md](journal/2026-04-01/0230-oh-my-zsh-migration.md) — Oh My Zsh migration notes
 - [2026-04-01/0755-fix-unbound-variable-categories.md](journal/2026-04-01/0755-fix-unbound-variable-categories.md) — Fix unbound variable in categories
 - [2026-04-01/0900-review-fix-ohmyzsh-font-extensions-tui.md](journal/2026-04-01/0900-review-fix-ohmyzsh-font-extensions-tui.md) — Review & fix: Powerlevel10k, CaskaydiaCove font, VS Code extensions, TUI default selection, is_installed audit
+- [2026-04-01/1003-add-modelharbor-extension.md](journal/2026-04-01/1003-add-modelharbor-extension.md) — Add ModelHarbor VS Code extension
+- [2026-04-01/1020-fix-vscode-extension-timeout.md](journal/2026-04-01/1020-fix-vscode-extension-timeout.md) — Fix VS Code extension install timeout
+- [2026-04-01/1100-performance-optimization.md](journal/2026-04-01/1100-performance-optimization.md) — Performance optimization: is_installed() cache, filesystem checks, snap fast path, fc-list cache

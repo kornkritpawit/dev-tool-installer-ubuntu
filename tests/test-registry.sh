@@ -109,6 +109,11 @@ for entry in "\${CATEGORIES[@]}"; do
     done
     echo "CAT:\${cat_id}:\${count}"
 done
+
+# Report cache infrastructure
+declare -p _INSTALL_CACHE &>/dev/null && echo "CACHE_DECLARED:yes" || echo "CACHE_DECLARED:no"
+declare -F registry_clear_cache &>/dev/null && echo "FUNC_CLEAR_CACHE:yes" || echo "FUNC_CLEAR_CACHE:no"
+declare -F registry_clear_tool_cache &>/dev/null && echo "FUNC_CLEAR_TOOL_CACHE:yes" || echo "FUNC_CLEAR_TOOL_CACHE:no"
 MAINEOF
 
 # Execute the temp script and capture output
@@ -161,6 +166,36 @@ for cat_id in "${!EXPECTED_COUNTS[@]}"; do
         ((FAIL++))
     fi
 done
+
+echo ""
+echo "--- Cache Infrastructure ---"
+
+cache_declared=$(echo "$output" | grep "^CACHE_DECLARED:" | cut -d: -f2)
+if [ "$cache_declared" = "yes" ]; then
+    echo "  ✅ _INSTALL_CACHE declared as associative array"
+    ((PASS++))
+else
+    echo "  ❌ _INSTALL_CACHE not declared as associative array"
+    ((FAIL++))
+fi
+
+func_clear_cache=$(echo "$output" | grep "^FUNC_CLEAR_CACHE:" | cut -d: -f2)
+if [ "$func_clear_cache" = "yes" ]; then
+    echo "  ✅ registry_clear_cache() function exists"
+    ((PASS++))
+else
+    echo "  ❌ registry_clear_cache() function missing"
+    ((FAIL++))
+fi
+
+func_clear_tool_cache=$(echo "$output" | grep "^FUNC_CLEAR_TOOL_CACHE:" | cut -d: -f2)
+if [ "$func_clear_tool_cache" = "yes" ]; then
+    echo "  ✅ registry_clear_tool_cache() function exists"
+    ((PASS++))
+else
+    echo "  ❌ registry_clear_tool_cache() function missing"
+    ((FAIL++))
+fi
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

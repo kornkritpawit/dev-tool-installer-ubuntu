@@ -228,6 +228,31 @@ for entry in "\${TOOLS[@]}"; do
     fi
 done
 
+# ==============================================================================
+# Validate performance optimization functions
+# ==============================================================================
+
+echo ""
+echo "--- Performance Optimization Functions ---"
+
+# Check _get_fc_list() in terminal-shell.sh
+if declare -F _get_fc_list &>/dev/null; then
+    echo "  ✅ _get_fc_list() function defined (terminal-shell.sh)"
+    PASS=\$((PASS + 1))
+else
+    echo "  ❌ _get_fc_list() function missing (expected in terminal-shell.sh)"
+    FAIL=\$((FAIL + 1))
+fi
+
+# Check is_snap_installed() in core.sh
+if declare -F is_snap_installed &>/dev/null; then
+    echo "  ✅ is_snap_installed() function defined (core.sh)"
+    PASS=\$((PASS + 1))
+else
+    echo "  ❌ is_snap_installed() function missing (expected in core.sh)"
+    FAIL=\$((FAIL + 1))
+fi
+
 echo ""
 echo "Results: \$PASS passed, \$FAIL failed"
 

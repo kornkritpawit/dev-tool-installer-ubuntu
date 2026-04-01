@@ -149,7 +149,13 @@ is_package_installed() {
 # Check if a snap package is installed
 # Usage: is_snap_installed <snap_name>
 is_snap_installed() {
-    snap list "$1" &>/dev/null 2>&1
+    local snap_name="$1"
+    # Fast path: check snap binary directly (avoids slow "snap list" query)
+    if [ -x "/snap/bin/${snap_name}" ]; then
+        return 0
+    fi
+    # Fallback: binary name may differ from snap name
+    snap list "$snap_name" &>/dev/null 2>&1
 }
 
 # ------------------------------------------------------------------------------

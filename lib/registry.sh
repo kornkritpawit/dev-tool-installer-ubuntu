@@ -42,6 +42,13 @@ CATEGORIES=(
 
 TOOLS=()
 
+# Installation status cache — avoids calling __is_installed() multiple times
+# per tool.  Must use "declare -gA" (not plain assignment) because:
+#   1. Associative arrays require "declare -A"
+#   2. This file may be sourced inside a function, so "-g" ensures GLOBAL scope
+# Requires bash 4.2+ (Ubuntu 22.04 ships bash 5.1)
+declare -gA _INSTALL_CACHE=()
+
 # Tools will be populated when installer modules are sourced.
 # Each installer file (installers/*.sh) should call register_tool() to add
 # its tools to the TOOLS array.
@@ -220,19 +227,41 @@ registry_is_always_run() {
 }
 
 # Check if a tool is installed (calls the tool's __is_installed function)
+# Results are cached in _INSTALL_CACHE to avoid expensive repeated checks.
 # Usage: registry_is_tool_installed <category_id> <tool_id>
 registry_is_tool_installed() {
     local category="$1"
     local tool="$2"
-    local func="${category}__${tool}__is_installed"
+    local cache_key="${category}:${tool}"
 
-    if declare -f "$func" &>/dev/null; then
-        "$func"
-        return $?
+    # Return cached result if available
+    if [[ -v _INSTALL_CACHE["$cache_key"] ]]; then
+        return "${_INSTALL_CACHE[$cache_key]}"
     fi
 
-    # Function not found = not installed
-    return 1
+    local func="${category}__${tool}__is_installed"
+    local result=1
+    if declare -f "$func" &>/dev/null; then
+        "$func"
+        result=$?
+    fi
+
+    _INSTALL_CACHE["$cache_key"]=$result
+    return $result
+}
+
+# Clear the entire installation status cache
+# Usage: registry_clear_cache
+registry_clear_cache() {
+    _INSTALL_CACHE=()
+}
+
+# Clear cache for a specific tool (e.g. after installing it)
+# Usage: registry_clear_tool_cache <category_id> <tool_id>
+registry_clear_tool_cache() {
+    local category="$1"
+    local tool="$2"
+    unset '_INSTALL_CACHE["${category}:${tool}"]'
 }
 
 # Install a tool (calls the tool's __install function)

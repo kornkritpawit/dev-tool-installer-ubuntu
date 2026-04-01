@@ -148,16 +148,17 @@ editors__vscode_extensions__is_installed() {
         return 1
     fi
 
-    # Build env prefix — su - loses DISPLAY/DBUS/XDG vars needed by Electron
-    local env_prefix
-    env_prefix=$(_build_vscode_env_prefix)
+    # Fast filesystem check — count extension directories instead of
+    # launching Electron via "code --list-extensions" (15-30s startup).
+    local ext_dir="${REAL_HOME}/.vscode/extensions"
+    if [ ! -d "$ext_dir" ]; then
+        return 1
+    fi
+    local count
+    count=$(find "$ext_dir" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | wc -l)
 
-    # Get installed extensions count (run as real user with env vars)
-    local installed_count
-    installed_count=$(su - "$REAL_USER" -c "${env_prefix}code --list-extensions" 2>/dev/null | wc -l)
-
-    # Consider "installed" if at least 20 extensions are present
-    [ "${installed_count:-0}" -ge 20 ]
+    # Consider "installed" if at least 20 extension directories are present
+    [ "${count:-0}" -ge 20 ]
 }
 
 # Install VS Code extensions
