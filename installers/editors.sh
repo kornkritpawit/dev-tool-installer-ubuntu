@@ -9,7 +9,7 @@
 #
 # Tools (3):
 #   vscode            — Visual Studio Code (.deb download)
-#   vscode_extensions — VS Code Extensions (32 extensions)
+#   vscode_extensions — VS Code Extensions (33 extensions)
 #   vscode_settings   — VS Code Settings (settings.json deployment)
 # ==============================================================================
 
@@ -20,9 +20,11 @@
 # ==============================================================================
 
 VSCODE_EXTENSIONS=(
+    # .NET — runtime must be installed first (dependency of csharp & csdevkit)
+    "ms-dotnettools.vscode-dotnet-runtime"
     "ms-dotnettools.csharp"
     "ms-dotnettools.csdevkit"
-    "ms-dotnettools.vscode-dotnet-runtime"
+    # Python
     "ms-python.python"
     "ms-python.vscode-pylance"
     "ms-python.debugpy"
@@ -38,6 +40,7 @@ VSCODE_EXTENSIONS=(
     "pkief.material-icon-theme"
     "github.copilot"
     "github.copilot-chat"
+    "ModelHarbor.modelharbor-agent"
     "ms-vscode-remote.remote-containers"
     "ms-vscode-remote.remote-ssh"
     "ms-azuretools.vscode-docker"
@@ -53,6 +56,22 @@ VSCODE_EXTENSIONS=(
     "ms-vscode.hexeditor"
     "shardulm94.trailing-spaces"
 )
+
+# ==============================================================================
+# Helper: Build environment prefix for su -c commands
+# ==============================================================================
+# VS Code (Electron) needs DISPLAY, DBUS, XDG vars to function correctly.
+# When using "su - USER -c ..." these vars are lost because it creates a
+# fresh login shell. This helper preserves them.
+
+_build_vscode_env_prefix() {
+    local prefix=""
+    [ -n "${DISPLAY:-}" ] && prefix+="DISPLAY='${DISPLAY}' "
+    [ -n "${WAYLAND_DISPLAY:-}" ] && prefix+="WAYLAND_DISPLAY='${WAYLAND_DISPLAY}' "
+    [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] && prefix+="DBUS_SESSION_BUS_ADDRESS='${DBUS_SESSION_BUS_ADDRESS}' "
+    [ -n "${XDG_RUNTIME_DIR:-}" ] && prefix+="XDG_RUNTIME_DIR='${XDG_RUNTIME_DIR}' "
+    echo "$prefix"
+}
 
 # ==============================================================================
 # Tool: vscode
@@ -119,19 +138,23 @@ editors__vscode__install() {
 
 # Description for VS Code Extensions
 editors__vscode_extensions__description() {
-    echo "VS Code Extensions — 32 essential development extensions"
+    echo "VS Code Extensions — 33 essential development extensions"
 }
 
-# Check if VS Code extensions are installed (at least 20 of 31)
+# Check if VS Code extensions are installed (at least 20 of 33)
 editors__vscode_extensions__is_installed() {
     # VS Code must be installed first
     if ! is_command_available "code"; then
         return 1
     fi
 
-    # Get installed extensions count (run as real user)
+    # Build env prefix — su - loses DISPLAY/DBUS/XDG vars needed by Electron
+    local env_prefix
+    env_prefix=$(_build_vscode_env_prefix)
+
+    # Get installed extensions count (run as real user with env vars)
     local installed_count
-    installed_count=$(su - "$REAL_USER" -c "code --list-extensions 2>/dev/null" | wc -l 2>/dev/null)
+    installed_count=$(su - "$REAL_USER" -c "${env_prefix}code --list-extensions" 2>/dev/null | wc -l)
 
     # Consider "installed" if at least 20 extensions are present
     [ "${installed_count:-0}" -ge 20 ]
@@ -140,7 +163,7 @@ editors__vscode_extensions__is_installed() {
 # Install VS Code extensions
 editors__vscode_extensions__install() {
     local total=${#VSCODE_EXTENSIONS[@]}
-    local ext_timeout=120  # 2 minutes per extension
+    local ext_timeout=180  # 3 minutes per extension (dotnet extensions are large)
 
     log_info "Installing VS Code extensions (${total} extensions, timeout: ${ext_timeout}s each)..."
 
@@ -150,17 +173,44 @@ editors__vscode_extensions__install() {
         return 1
     fi
 
+    # ---- Build environment prefix for su -c ----
+    # su - creates a fresh login shell that loses DISPLAY, DBUS, XDG vars.
+    # VS Code (Electron) needs these to function correctly.
+    local env_prefix
+    env_prefix=$(_build_vscode_env_prefix)
+
+    # ---- Pre-check: VS Code CLI works under su - context ----
+    log_info "Verifying VS Code CLI works under user '${REAL_USER}'..."
+    if ! su - "$REAL_USER" -c "${env_prefix}timeout 15 code --version" >> "$LOG_FILE" 2>&1; then
+        log_error "VS Code CLI not functional under user '${REAL_USER}'."
+        log_error "This may be caused by missing environment variables or VS Code not in PATH."
+        log_error "Try running: su - ${REAL_USER} -c 'code --version'"
+        return 1
+    fi
+
+    # ---- Pre-check: VS Code Marketplace reachable ----
+    log_info "Checking VS Code Marketplace connectivity..."
+    if ! timeout 15 curl -fsSL --head "https://marketplace.visualstudio.com" > /dev/null 2>&1; then
+        log_warning "Cannot reach VS Code Marketplace. Extensions may fail to install."
+        log_warning "Check network connectivity or proxy settings."
+        # Continue anyway — some extensions might be cached or available
+    fi
+
     local success_count=0
     local fail_count=0
     local timeout_count=0
     local current=0
+    local failed_extensions=()
 
     for ext in "${VSCODE_EXTENSIONS[@]}"; do
         current=$((current + 1))
         log_info "[${current}/${total}] Installing ${ext}... (timeout: ${ext_timeout}s)"
 
-        # Run as real user with timeout to prevent hanging
-        if timeout "$ext_timeout" su - "$REAL_USER" -c "code --install-extension '${ext}' --force 2>/dev/null" >> "$LOG_FILE" 2>&1; then
+        # NOTE: timeout MUST be inside su -c so it directly controls the code
+        # process. Wrapping "timeout su -c ..." only kills su, leaving code
+        # running indefinitely as an orphan process.
+        # env_prefix passes DISPLAY/DBUS/XDG vars that su - would otherwise lose.
+        if su - "$REAL_USER" -c "${env_prefix}timeout ${ext_timeout} code --install-extension '${ext}' --force" >> "$LOG_FILE" 2>&1; then
             success_count=$((success_count + 1))
             log_success "[${current}/${total}] ✓ ${ext}"
         else
@@ -171,10 +221,30 @@ editors__vscode_extensions__install() {
                 log_warning "[${current}/${total}] ⏰ TIMEOUT: ${ext} (exceeded ${ext_timeout}s, skipping)"
             else
                 fail_count=$((fail_count + 1))
-                log_warning "[${current}/${total}] ✗ Failed: ${ext}"
+                log_warning "[${current}/${total}] ✗ Failed: ${ext} (exit code: ${exit_code})"
             fi
+            failed_extensions+=("$ext")
         fi
     done
+
+    # ---- Retry failed extensions once ----
+    if [ ${#failed_extensions[@]} -gt 0 ]; then
+        log_info "Retrying ${#failed_extensions[@]} failed extension(s)..."
+        local retry_num=0
+        local retry_total=${#failed_extensions[@]}
+        for ext in "${failed_extensions[@]}"; do
+            retry_num=$((retry_num + 1))
+            log_info "[Retry ${retry_num}/${retry_total}] ${ext}..."
+
+            if su - "$REAL_USER" -c "${env_prefix}timeout ${ext_timeout} code --install-extension '${ext}' --force" >> "$LOG_FILE" 2>&1; then
+                success_count=$((success_count + 1))
+                fail_count=$((fail_count > 0 ? fail_count - 1 : 0))
+                log_success "[Retry] ✓ ${ext}"
+            else
+                log_warning "[Retry] ✗ Still failed: ${ext}"
+            fi
+        done
+    fi
 
     log_success "VS Code extensions: ${success_count}/${total} installed, ${fail_count} failed, ${timeout_count} timed out"
 
