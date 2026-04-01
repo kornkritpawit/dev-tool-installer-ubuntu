@@ -28,7 +28,7 @@ CATEGORIES=(
     "dotnet:.NET Development:.NET SDK for C# development"
     "devops:DevOps Tools:Container and orchestration tools"
     "editors:Editors and IDEs:Code editors with extensions"
-    "terminal_shell:Terminal and Shell:Shell customization and fonts"
+    "terminal_shell:Terminal and Shell:Terminal configuration"
     "applications:Applications:Developer applications and browsers"
     "desktop_settings:Desktop Settings:GNOME desktop preferences"
 )

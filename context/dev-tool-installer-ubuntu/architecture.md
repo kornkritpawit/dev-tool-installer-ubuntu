@@ -38,15 +38,13 @@ dev-tool-installer-ubuntu/
 │   ├── dotnet.sh                       # dotnet-sdk-10.0
 │   ├── devops.sh                       # docker-ce, docker-compose, daemon config
 │   ├── editors.sh                      # VS Code + settings
-│   ├── terminal-shell.sh              # oh-my-zsh, fonts, GNOME Terminal, profiles
+│   ├── terminal-shell.sh              # GNOME Terminal configuration
 │   ├── applications.sh                 # Postman, RustDesk, WireGuard, browsers
 │   └── desktop-settings.sh            # GNOME settings, browser policies
 ├── config/
-│   ├── .gitkeep                       # (paradox.omp.json removed — Oh My Zsh uses ~/.oh-my-zsh themes)
+│   ├── .gitkeep
 │   ├── vscode-settings.json           # VS Code user settings template
 │   └── docker-daemon.json             # Docker daemon config template
-├── font/
-│   └── THSARABUN_PSK.zip             # Bundled TH Sarabun PSK font
 ├── context/
 │   ├── INDEX.md
 │   └── dev-tool-installer-ubuntu/
@@ -111,7 +109,7 @@ declare -a CATEGORIES=(
     "dotnet:.NET Development:.NET SDK for C# development"
     "devops:DevOps Tools:Container and orchestration tools"
     "editors:Editors and IDEs:Code editors with extensions"
-    "terminal_shell:Terminal and Shell:Shell customization and fonts"
+    "terminal_shell:Terminal and Shell:Terminal configuration"
     "applications:Applications:Developer applications and browsers"
     "desktop_settings:Desktop Settings:GNOME desktop preferences"
 )
@@ -142,11 +140,7 @@ declare -a TOOLS=(
     "devops:docker_config:Docker Configuration:false"
     "editors:vscode:Visual Studio Code:false"
     "editors:vscode_settings:VS Code Settings:true"
-    "terminal_shell:oh_my_zsh:Oh My Zsh:false"
-    "terminal_shell:font_cascadia:CascadiaMono Nerd Font:true"
-    "terminal_shell:font_thsarabun:TH Sarabun PSK:true"
     "terminal_shell:gnome_terminal:GNOME Terminal Config:true"
-    "terminal_shell:shell_profile:Shell Profile:true"
     "applications:postman:Postman:false"
     "applications:rustdesk:RustDesk:false"
     "applications:wireguard:WireGuard:false"
@@ -226,20 +220,16 @@ tool_install() {
 | 22 | Docker Configuration | daemon.json | DevOps | config file | `[ -f /etc/docker/daemon.json ]` |
 | 23 | VS Code | code | Editors | Microsoft APT repo | `command -v code` |
 | 24 | VS Code Settings | settings.json | Editors | config file copy/merge | file existence check |
-| 25 | Oh My Zsh | oh-my-zsh | Terminal | oh-my-zsh install script | `[ -d "$HOME/.oh-my-zsh" ]` |
-| 26 | CascadiaMono NF | CascadiaMono NF | Terminal | download + fc-cache | `fc-list \| grep CaskaydiaMono` |
-| 27 | TH Sarabun | TH Sarabun PSK | Terminal | bundled zip + fc-cache | `fc-list \| grep Sarabun` |
-| 28 | Windows Terminal config | GNOME Terminal config | Terminal | gsettings/dconf | always run |
-| 29 | PowerShell profile | .zshrc (oh-my-zsh config) | Terminal | shell config append | always run |
-| 30 | Postman | Postman | Applications | snap | `snap list postman` |
-| 31 | RustDesk | RustDesk | Applications | .deb download | `command -v rustdesk` |
-| 32 | WireGuard | wireguard | Applications | apt | `command -v wg` |
-| 33 | Chrome | google-chrome-stable | Applications | .deb from Google | `command -v google-chrome-stable` |
-| 34 | Firefox | firefox | Applications | apt (pre-installed) | `command -v firefox` |
-| 35 | Brave | brave-browser | Applications | Brave APT repo | `command -v brave-browser` |
-| 36 | Opera | opera-stable | Applications | Opera APT repo | `command -v opera` |
-| 37 | Explorer Settings | GNOME Settings | Desktop | gsettings | always run |
-| 38 | Browser Settings | Browser Policies | Desktop | JSON policy files | always run |
+| 25 | Windows Terminal config | GNOME Terminal config | Terminal | gsettings/dconf | always run |
+| 26 | Postman | Postman | Applications | snap | `snap list postman` |
+| 27 | RustDesk | RustDesk | Applications | .deb download | `command -v rustdesk` |
+| 28 | WireGuard | wireguard | Applications | apt | `command -v wg` |
+| 29 | Chrome | google-chrome-stable | Applications | .deb from Google | `command -v google-chrome-stable` |
+| 30 | Firefox | firefox | Applications | apt (pre-installed) | `command -v firefox` |
+| 31 | Brave | brave-browser | Applications | Brave APT repo | `command -v brave-browser` |
+| 32 | Opera | opera-stable | Applications | Opera APT repo | `command -v opera` |
+| 33 | Explorer Settings | GNOME Settings | Desktop | gsettings | always run |
+| 34 | Browser Settings | Browser Policies | Desktop | JSON policy files | always run |
 
 ### 4.2 Skipped Tools (ไม่มีบน Linux หรือไม่จำเป็น)
 
@@ -313,7 +303,7 @@ flowchart TD
 │  [ ] .NET Development         1 tool   (1 new)    │
 │  [*] DevOps Tools             3 tools  (3 new)    │
 │  [*] Editors and IDEs         2 items  (1 new)    │
-│  [*] Terminal and Shell       5 items  (0 new)    │
+│  [*] Terminal and Shell       1 item   (0 new)    │
 │  [*] Applications             7 tools  (5 new)    │
 │  [ ] Desktop Settings         2 items  (0 new)    │
 │                                                    │
@@ -381,7 +371,6 @@ flowchart TD
 │                                                    │
 │  Some changes require logout to take effect:       │
 │  - Docker group membership                         │
-│  - Font changes                                    │
 │  - PATH updates                                    │
 │                                                    │
 │  Log out now?                                      │
@@ -470,17 +459,7 @@ nodejs__nvm__install() {
 }
 ```
 
-### 6.5 Oh My Zsh Install Pattern
-
-```bash
-terminal_shell__oh_my_zsh__install() {
-    # Install Oh My Zsh (unattended)
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-    return $?
-}
-```
-
-### 6.6 DEB Download Pattern
+### 6.5 DEB Download Pattern
 
 ```bash
 applications__rustdesk__install() {
@@ -493,7 +472,7 @@ applications__rustdesk__install() {
 }
 ```
 
-### 6.7 Configuration-Only Pattern (AlwaysRun)
+### 6.6 Configuration-Only Pattern (AlwaysRun)
 
 ```bash
 editors__vscode_settings__install() {
@@ -577,11 +556,7 @@ editors__vscode_settings__install() {
 
 | Tool | Primary | Fallback | Detection | Post-Config |
 |------|---------|----------|-----------|-------------|
-| Oh My Zsh | oh-my-zsh install script | git clone | `[ -d "$HOME/.oh-my-zsh" ]` | configure .zshrc, set theme/plugins |
-| CascadiaMono NF | download zip + extract to ~/.local/share/fonts + fc-cache | — | `fc-list \| grep CaskaydiaMono` | — |
-| TH Sarabun PSK | extract bundled zip to ~/.local/share/fonts + fc-cache | — | `fc-list \| grep Sarabun` | — |
 | GNOME Terminal | gsettings set | dconf write | always run | font, color scheme |
-| Shell Profile | append to .zshrc | — | always run | oh-my-zsh config, nvm source |
 
 ### 7.8 Applications
 
@@ -796,8 +771,6 @@ ensure_sudo() {
 |-----------|--------|
 | nvm install | user-space (~/.nvm) |
 | npm install -g | user-space via nvm |
-| oh-my-zsh install | user-space (~/.oh-my-zsh) |
-| Font install to ~/.local | user home directory |
 | .bashrc/.zshrc edit | user home directory |
 | gsettings | user dconf database |
 
@@ -809,10 +782,8 @@ ensure_sudo() {
 
 | File | Source | Destination | Merge Strategy |
 |------|--------|-------------|---------------|
-| — (oh-my-zsh) | oh-my-zsh manages themes via `~/.oh-my-zsh/themes/` | `~/.zshrc` (ZSH_THEME setting) | oh-my-zsh built-in |
 | `config/vscode-settings.json` | bundled | `~/.config/Code/User/settings.json` | jq merge (keep existing) |
 | `config/docker-daemon.json` | bundled | `/etc/docker/daemon.json` | jq merge (sudo) |
-| `font/THSARABUN_PSK.zip` | bundled | `~/.local/share/fonts/` | extract |
 
 ### 11.2 VS Code Settings (Linux-specific adjustments)
 
@@ -824,51 +795,7 @@ ensure_sudo() {
 }
 ```
 
-### 11.3 Shell Profile Content
-
-```bash
-# === Dev Tool Installer Configuration ===
-# Oh My Zsh is configured via ~/.zshrc (managed by oh-my-zsh itself)
-# ZSH_THEME="robbyrussell"
-# plugins=(git docker nvm)
-
-# NVM
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
-
-# uv
-[ -s "$HOME/.local/bin/env" ] && source "$HOME/.local/bin/env"
-
-# .NET
-export DOTNET_ROOT="$HOME/.dotnet"
-export PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"
-# === End Dev Tool Installer Configuration ===
-```
-
-Profile editing strategy: ใช้ marker comments เพื่อ idempotent update:
-
-```bash
-update_shell_profile() {
-    local profile="$1"
-    local marker_start="# === Dev Tool Installer Configuration ==="
-    local marker_end="# === End Dev Tool Installer Configuration ==="
-    
-    # Remove old block if exists
-    if grep -q "$marker_start" "$profile" 2>/dev/null; then
-        sed -i "/$marker_start/,/$marker_end/d" "$profile"
-    fi
-    
-    # Append new block
-    cat >> "$profile" << 'PROFILE_BLOCK'
-# === Dev Tool Installer Configuration ===
-...
-# === End Dev Tool Installer Configuration ===
-PROFILE_BLOCK
-}
-```
-
-### 11.4 GNOME Desktop Settings
+### 11.3 GNOME Desktop Settings
 
 ```bash
 desktop_settings__gnome_settings__install() {
@@ -899,8 +826,6 @@ desktop_settings__gnome_settings__install() {
 | Package install | `dpkg -l` or `command -v` check before install |
 | APT repo add | Check if repo file exists before adding |
 | Config merge | jq merge preserves existing keys |
-| Shell profile | Marker-based block replacement |
-| Font install | fc-list check before download |
 | Docker group | `groups \| grep docker` check |
 
 ---
@@ -935,10 +860,8 @@ graph TB
     end
     
     subgraph Config
-        O[oh-my-zsh themes]
         P[config/vscode-settings.json]
         Q[config/docker-daemon.json]
-        R[font/THSARABUN_PSK.zip]
     end
     
     A --> B
@@ -955,8 +878,6 @@ graph TB
     A --> M
     A --> N
     K --> P
-    L --> O
-    L --> R
     J --> Q
 ```
 
@@ -1071,10 +992,10 @@ SKIP_TOOLS="opera brave"
 | .NET Development | 1 | 0 |
 | DevOps Tools | 3 | 0 |
 | Editors and IDEs | 2 | 1 |
-| Terminal and Shell | 5 | 3 |
+| Terminal and Shell | 1 | 1 |
 | Applications | 7 | 0 |
 | Desktop Settings | 2 | 2 |
-| **รวม** | **38** | **6** |
+| **รวม** | **34** | **4** |
 
-เทียบกับ Windows: 28 tools (ไม่นับ WSL, Notepad++, Windows Terminal, PowerShell 7 ที่ skip)  
-Ubuntu version: 38 tools (เพิ่ม System Essentials 9 ตัว + แยก items ที่ Windows รวมกัน)
+เทียบกับ Windows: 28 tools (ไม่นับ WSL, Notepad++, Windows Terminal, PowerShell 7 ที่ skip)
+Ubuntu version: 34 tools (เพิ่ม System Essentials 9 ตัว + แยก items ที่ Windows รวมกัน)

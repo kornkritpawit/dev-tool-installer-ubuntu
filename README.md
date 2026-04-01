@@ -30,7 +30,7 @@ chmod +x install.sh
 ./install.sh
 ```
 
-## 📦 Tool Categories (40 tools across 9 categories)
+## 📦 Tool Categories (35 tools across 9 categories)
 
 | Category | Tools | Description |
 |----------|-------|-------------|
@@ -40,11 +40,11 @@ chmod +x install.sh
 | 🟣 .NET Development | 1 | .NET SDK (latest LTS) |
 | 🐳 DevOps Tools | 3 | Docker Engine, Docker Compose, Docker Configuration (daemon.json) |
 | 📝 Editors and IDEs | 3 | VS Code + 31 extensions + settings.json |
-| 🖥️ Terminal and Shell | 5 | Oh My Zsh, Oh My Zsh Config, CaskaydiaMono Nerd Font, TH Sarabun PSK, GNOME Terminal config |
+| 🖥️ Terminal and Shell | 1 | GNOME Terminal config |
 | 📦 Applications | 7 | Postman, RustDesk, WireGuard VPN+GUI, Chrome, Firefox, Brave, Opera |
 | 🖥️ Desktop Settings | 3 | GNOME desktop settings, browser privacy policies, LibreOffice configuration |
 
-**Total: 40 tools** across 9 categories.
+**Total: 35 tools** across 9 categories.
 
 ## 📁 Project Structure
 
@@ -64,14 +64,12 @@ dev-tool-installer-ubuntu/
 │   ├── dotnet.sh                       # 🟣 .NET SDK latest LTS (1 tool)
 │   ├── devops.sh                       # 🐳 Docker CE, Compose, daemon config (3 tools)
 │   ├── editors.sh                      # 📝 VS Code + extensions + settings (3 tools)
-│   ├── terminal-shell.sh               # 🖥️ Oh My Zsh, config, fonts, GNOME Terminal (5 tools)
+│   ├── terminal-shell.sh               # 🖥️ GNOME Terminal config (1 tool)
 │   ├── applications.sh                 # 📦 Postman, RustDesk, WireGuard, browsers (7 tools)
 │   └── desktop-settings.sh             # 🖥️ GNOME settings, browser policies, LibreOffice config (3 tools)
 ├── config/
 │   ├── .gitkeep
 │   └── vscode-settings.json            # VS Code user settings template
-├── font/
-│   └── (THSARABUN_PSK.zip)            # Bundled TH Sarabun PSK font (place here)
 └── context/                            # Architecture & planning docs
     ├── INDEX.md
     └── dev-tool-installer-ubuntu/
@@ -171,7 +169,7 @@ tests/
 - The script uses `set -euo pipefail` for strict error handling
 - Each tool installation is isolated in a subshell — one failure won't stop others
 - Press **Ctrl+C** at any time to cancel gracefully
-- Some changes require **logout** to take effect (Docker group, fonts, PATH updates)
+- Some changes require **logout** to take effect (Docker group, PATH updates)
 
 ## 📄 License
 
