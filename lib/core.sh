@@ -219,24 +219,25 @@ ensure_apt_updated() {
 # Download Helpers
 # ------------------------------------------------------------------------------
 
-# Download a file with retry support
-# Usage: download_file <url> <destination> [max_retries]
+# Download a file with retry support and timeout
+# Usage: download_file <url> <destination> [max_retries] [timeout_secs]
 download_file() {
     local url="$1"
     local dest="$2"
     local max_retries="${3:-3}"
+    local dl_timeout="${4:-300}"  # 5 minutes default timeout per attempt
     local attempt=1
 
     while [ "$attempt" -le "$max_retries" ]; do
-        log_debug "Download attempt $attempt/$max_retries: $url"
+        log_debug "Download attempt $attempt/$max_retries (timeout: ${dl_timeout}s): $url"
 
         if is_command_available curl; then
-            if curl -fsSL -o "$dest" "$url" 2>> "$LOG_FILE"; then
+            if curl -fsSL --connect-timeout 30 --max-time "$dl_timeout" -o "$dest" "$url" 2>> "$LOG_FILE"; then
                 log_debug "Download succeeded: $url"
                 return 0
             fi
         elif is_command_available wget; then
-            if wget -q -O "$dest" "$url" 2>> "$LOG_FILE"; then
+            if wget -q --connect-timeout=30 --timeout="$dl_timeout" -O "$dest" "$url" 2>> "$LOG_FILE"; then
                 log_debug "Download succeeded: $url"
                 return 0
             fi

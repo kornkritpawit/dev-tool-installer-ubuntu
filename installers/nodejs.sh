@@ -61,8 +61,8 @@ nodejs__nvm__is_installed() {
 nodejs__nvm__install() {
     log_info "Installing NVM (Node Version Manager)..."
 
-    # Download and run the official NVM install script
-    if curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash >> "$LOG_FILE" 2>&1; then
+    # Download and run the official NVM install script (timeout: 120s)
+    if timeout 120 bash -c 'curl -fsSL --connect-timeout 30 --max-time 60 https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash' >> "$LOG_FILE" 2>&1; then
         log_success "NVM install script completed"
     else
         log_error "NVM install script failed"

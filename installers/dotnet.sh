@@ -77,9 +77,9 @@ _dotnet_install_via_script() {
 
     chmod +x "$install_script"
 
-    # Run the install script for LTS channel
-    log_info "Running dotnet-install.sh --channel LTS..."
-    if "$install_script" --channel LTS >> "$LOG_FILE" 2>&1; then
+    # Run the install script for LTS channel (timeout: 300s / 5 minutes)
+    log_info "Running dotnet-install.sh --channel LTS (timeout: 300s)..."
+    if timeout 300 "$install_script" --channel LTS >> "$LOG_FILE" 2>&1; then
         log_success ".NET SDK installed via official script"
 
         # Verify installation

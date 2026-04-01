@@ -38,7 +38,7 @@ chmod +x install.sh
 | 🐍 Python Development | 5 | Python 3, pip, Poetry, uv, build dependencies |
 | 📦 Node.js Development | 4 | NVM, Node.js 20 LTS, npm, dev tools (pnpm, typescript, etc.) |
 | 🟣 .NET Development | 1 | .NET SDK (latest LTS) |
-| 🐳 DevOps Tools | 3 | Docker Engine, Docker Compose, Docker Configuration (daemon.json + pgvector) |
+| 🐳 DevOps Tools | 3 | Docker Engine, Docker Compose, Docker Configuration (daemon.json) |
 | 📝 Editors and IDEs | 3 | VS Code + 31 extensions + settings.json |
 | 🖥️ Terminal and Shell | 5 | Oh My Zsh, Oh My Zsh Config, CaskaydiaMono Nerd Font, TH Sarabun PSK, GNOME Terminal config |
 | 📦 Applications | 7 | Postman, RustDesk, WireGuard, Chrome, Firefox, Brave, Opera |

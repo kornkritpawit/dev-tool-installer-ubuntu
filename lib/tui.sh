@@ -145,11 +145,8 @@ tui_category_checklist() {
         # Build display string
         local label="${display_name} (${total_count} tools, ${new_count} new)"
 
-        # Default: check if category has new tools
-        local checked="OFF"
-        if [ "$new_count" -gt 0 ]; then
-            checked="ON"
-        fi
+        # Default: all categories are selected by default
+        local checked="ON"
 
         checklist_args+=("$category_id" "$label" "$checked")
     done
@@ -203,17 +200,11 @@ tui_tool_checklist() {
         local display_name
         display_name=$(registry_get_tool_name "$category_id" "$tool_id")
 
-        # Check installed status
+        # Check installed status — all tools selected by default
         local status_icon="✗ not installed"
         local checked="ON"
         if registry_is_tool_installed "$category_id" "$tool_id"; then
             status_icon="✓ installed"
-            # Still check always_run tools by default
-            if registry_is_always_run "$category_id" "$tool_id"; then
-                checked="ON"
-            else
-                checked="OFF"
-            fi
         fi
 
         local label="${display_name} [${status_icon}]"

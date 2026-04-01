@@ -10,7 +10,7 @@
 # Tools (3):
 #   docker          — Docker Engine (docker-ce + cli + containerd + buildx + compose plugin)
 #   docker_compose  — Docker Compose (v2 plugin, fallback v1 standalone)
-#   docker_config   — Docker Configuration (daemon.json + pgvector image)
+#   docker_config   — Docker Configuration (daemon.json log rotation + address pool)
 # ==============================================================================
 
 # REAL_USER and REAL_HOME are defined in lib/core.sh
@@ -189,25 +189,15 @@ devops__docker_compose__install() {
 
 # Description for Docker Configuration
 devops__docker_config__description() {
-    echo "Docker daemon configuration (log rotation, address pool) + pgvector image"
+    echo "Docker daemon configuration (log rotation, address pool)"
 }
 
-# Check if Docker is configured (daemon.json exists + pgvector image pulled)
+# Check if Docker is configured (daemon.json exists)
 devops__docker_config__is_installed() {
-    # Check daemon.json exists
-    if [ ! -f /etc/docker/daemon.json ]; then
-        return 1
-    fi
-
-    # Check pgvector image exists
-    if ! docker images --format '{{.Repository}}' 2>/dev/null | grep -q "pgvector/pgvector"; then
-        return 1
-    fi
-
-    return 0
+    [ -f /etc/docker/daemon.json ]
 }
 
-# Configure Docker daemon and pull pgvector image
+# Configure Docker daemon
 devops__docker_config__install() {
     log_info "Configuring Docker daemon..."
 
@@ -282,43 +272,26 @@ DAEMONJSON
     fi
 
     # ---- Step 2: Restart Docker to apply daemon.json ----
-    log_info "Restarting Docker service..."
-    run_sudo systemctl restart docker || {
-        log_warning "Failed to restart Docker service (may not be running yet)"
-    }
+    log_info "Restarting Docker service to apply daemon.json..."
 
-    # ---- Step 3: Wait for Docker to be ready ----
-    log_info "Waiting for Docker to be ready..."
-    local max_wait=30
-    local waited=0
-    while [ "$waited" -lt "$max_wait" ]; do
-        if docker info &>/dev/null; then
-            break
+    if systemctl is-active docker &>/dev/null; then
+        # Docker is running — restart with timeout
+        if timeout 30 bash -c 'sudo systemctl restart docker' >> "$LOG_FILE" 2>&1; then
+            log_success "Docker service restarted successfully"
+        else
+            local exit_code=$?
+            if [ "$exit_code" -eq 124 ]; then
+                log_warning "Docker restart timed out after 30s (daemon.json is saved, Docker will apply on next start)"
+            else
+                log_warning "Docker restart failed (daemon.json is saved, Docker will apply on next start)"
+            fi
         fi
-        sleep 1
-        waited=$((waited + 1))
-    done
-
-    if [ "$waited" -ge "$max_wait" ]; then
-        log_warning "Docker service not ready after ${max_wait}s, pgvector pull may fail"
+    else
+        # Docker is not running — just log that config is saved
+        log_info "Docker service is not running. daemon.json saved — config will apply when Docker starts."
     fi
 
-    # ---- Step 4: Pull pgvector image ----
-    log_info "Pulling pgvector/pgvector:pg16 image..."
-    local pull_retries=3
-    local pull_attempt=1
-    while [ "$pull_attempt" -le "$pull_retries" ]; do
-        if docker pull pgvector/pgvector:pg16 >> "$LOG_FILE" 2>&1; then
-            log_success "pgvector image pulled successfully"
-            return 0
-        fi
-        log_warning "pgvector pull failed (attempt $pull_attempt/$pull_retries)"
-        pull_attempt=$((pull_attempt + 1))
-        sleep 3
-    done
-
-    # pgvector pull failure is non-fatal — daemon.json was configured successfully
-    log_warning "Failed to pull pgvector image (Docker may not be fully ready). You can pull it manually later: docker pull pgvector/pgvector:pg16"
+    log_success "Docker daemon configured successfully (daemon.json deployed)"
     return 0
 }
 

@@ -85,7 +85,7 @@ applications__rustdesk__install() {
     log_info "Fetching latest RustDesk release from GitHub API..."
     if is_command_available jq; then
         local api_response
-        api_response=$(curl -s "https://api.github.com/repos/rustdesk/rustdesk/releases/latest" 2>> "$LOG_FILE")
+        api_response=$(curl -s --connect-timeout 15 --max-time 30 "https://api.github.com/repos/rustdesk/rustdesk/releases/latest" 2>> "$LOG_FILE")
 
         if [ -n "$api_response" ]; then
             # Find amd64.deb asset URL

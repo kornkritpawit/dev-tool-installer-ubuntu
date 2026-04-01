@@ -9,7 +9,7 @@
 #
 # Tools (3):
 #   vscode            — Visual Studio Code (.deb download)
-#   vscode_extensions — VS Code Extensions (31 extensions)
+#   vscode_extensions — VS Code Extensions (32 extensions)
 #   vscode_settings   — VS Code Settings (settings.json deployment)
 # ==============================================================================
 
@@ -29,6 +29,7 @@ VSCODE_EXTENSIONS=(
     "ms-python.black-formatter"
     "ms-python.isort"
     "charliermarsh.ruff"
+    "ms-vscode.vscode-typescript-next"
     "dbaeumer.vscode-eslint"
     "esbenp.prettier-vscode"
     "bradlc.vscode-tailwindcss"
@@ -118,7 +119,7 @@ editors__vscode__install() {
 
 # Description for VS Code Extensions
 editors__vscode_extensions__description() {
-    echo "VS Code Extensions — 31 essential development extensions"
+    echo "VS Code Extensions — 32 essential development extensions"
 }
 
 # Check if VS Code extensions are installed (at least 20 of 31)
@@ -138,7 +139,10 @@ editors__vscode_extensions__is_installed() {
 
 # Install VS Code extensions
 editors__vscode_extensions__install() {
-    log_info "Installing VS Code extensions (${#VSCODE_EXTENSIONS[@]} extensions)..."
+    local total=${#VSCODE_EXTENSIONS[@]}
+    local ext_timeout=120  # 2 minutes per extension
+
+    log_info "Installing VS Code extensions (${total} extensions, timeout: ${ext_timeout}s each)..."
 
     # VS Code must be available
     if ! is_command_available "code"; then
@@ -148,22 +152,31 @@ editors__vscode_extensions__install() {
 
     local success_count=0
     local fail_count=0
-    local total=${#VSCODE_EXTENSIONS[@]}
+    local timeout_count=0
+    local current=0
 
     for ext in "${VSCODE_EXTENSIONS[@]}"; do
-        log_info "Installing extension: ${ext} [$((success_count + fail_count + 1))/${total}]"
+        current=$((current + 1))
+        log_info "[${current}/${total}] Installing ${ext}... (timeout: ${ext_timeout}s)"
 
-        # Run as real user (not root) — VS Code extensions are user-scoped
-        if su - "$REAL_USER" -c "code --install-extension '${ext}' --force" >> "$LOG_FILE" 2>&1; then
+        # Run as real user with timeout to prevent hanging
+        if timeout "$ext_timeout" su - "$REAL_USER" -c "code --install-extension '${ext}' --force 2>/dev/null" >> "$LOG_FILE" 2>&1; then
             success_count=$((success_count + 1))
-            log_debug "Extension installed: ${ext}"
+            log_success "[${current}/${total}] ✓ ${ext}"
         else
-            fail_count=$((fail_count + 1))
-            log_warning "Failed to install extension: ${ext}"
+            local exit_code=$?
+            if [ "$exit_code" -eq 124 ]; then
+                # timeout command returns 124 when it kills the process
+                timeout_count=$((timeout_count + 1))
+                log_warning "[${current}/${total}] ⏰ TIMEOUT: ${ext} (exceeded ${ext_timeout}s, skipping)"
+            else
+                fail_count=$((fail_count + 1))
+                log_warning "[${current}/${total}] ✗ Failed: ${ext}"
+            fi
         fi
     done
 
-    log_success "VS Code extensions: ${success_count}/${total} installed, ${fail_count} failed"
+    log_success "VS Code extensions: ${success_count}/${total} installed, ${fail_count} failed, ${timeout_count} timed out"
 
     # Consider success if majority installed
     if [ "$success_count" -ge 20 ]; then

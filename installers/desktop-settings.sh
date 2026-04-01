@@ -418,11 +418,11 @@ desktop_settings__libreoffice_config__install() {
 
     # ---- Initialize profile if it doesn't exist ----
     if [ ! -f "$xcu_file" ]; then
-        log_info "LibreOffice profile not found. Initializing..."
+        log_info "LibreOffice profile not found. Initializing (timeout: 30s)..."
         if [ "$EUID" -eq 0 ] && [ -n "$SUDO_USER" ]; then
-            su - "$REAL_USER" -c "soffice --headless --terminate_after_init" >> "$LOG_FILE" 2>&1 || true
+            timeout 30 su - "$REAL_USER" -c "soffice --headless --terminate_after_init" >> "$LOG_FILE" 2>&1 || true
         else
-            soffice --headless --terminate_after_init >> "$LOG_FILE" 2>&1 || true
+            timeout 30 soffice --headless --terminate_after_init >> "$LOG_FILE" 2>&1 || true
         fi
         sleep 3
         # Kill any leftover process

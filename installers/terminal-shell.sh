@@ -7,10 +7,11 @@
 # Category: terminal_shell
 # Display:  🖥️ Terminal and Shell
 #
-# Tools (5):
+# Tools (6):
 #   oh_my_zsh        — Oh My Zsh framework for managing Zsh configuration
-#   oh_my_zsh_config — Oh My Zsh configuration (theme + plugins)
-#   font_cascadia    — CaskaydiaMono Nerd Font
+#   powerlevel10k    — Powerlevel10k theme for Oh My Zsh (like Oh My Posh)
+#   oh_my_zsh_config — Oh My Zsh configuration (theme + plugins + PATH migration)
+#   font_cascadia    — CaskaydiaCove Nerd Font (Cascadia Code patched with icons)
 #   font_thsarabun   — TH Sarabun PSK font (bundled)
 #   gnome_terminal   — GNOME Terminal configuration (font, colors, scrollback)
 # ==============================================================================
@@ -47,8 +48,8 @@ terminal_shell__oh_my_zsh__install() {
     fi
 
     # ---- Step 2: Install Oh My Zsh via official script ----
-    log_info "Running Oh My Zsh install script..."
-    if su - "$REAL_USER" -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended' >> "$LOG_FILE" 2>&1; then
+    log_info "Running Oh My Zsh install script (timeout: 120s)..."
+    if timeout 120 su - "$REAL_USER" -c 'sh -c "$(curl -fsSL --connect-timeout 30 --max-time 60 https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended' >> "$LOG_FILE" 2>&1; then
         log_success "Oh My Zsh installed successfully"
     else
         log_error "Oh My Zsh install script failed"
@@ -66,18 +67,18 @@ terminal_shell__oh_my_zsh__install() {
     # ---- Step 4: Install popular plugins ----
     local zsh_custom="${REAL_HOME}/.oh-my-zsh/custom"
 
-    log_info "Installing zsh-autosuggestions plugin..."
+    log_info "Installing zsh-autosuggestions plugin (timeout: 60s)..."
     if [ ! -d "${zsh_custom}/plugins/zsh-autosuggestions" ]; then
-        su - "$REAL_USER" -c "git clone https://github.com/zsh-users/zsh-autosuggestions ${zsh_custom}/plugins/zsh-autosuggestions" >> "$LOG_FILE" 2>&1 || \
-            log_warning "Failed to clone zsh-autosuggestions"
+        timeout 60 su - "$REAL_USER" -c "git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions ${zsh_custom}/plugins/zsh-autosuggestions" >> "$LOG_FILE" 2>&1 || \
+            log_warning "Failed to clone zsh-autosuggestions (timeout or network error)"
     else
         log_info "zsh-autosuggestions already installed"
     fi
 
-    log_info "Installing zsh-syntax-highlighting plugin..."
+    log_info "Installing zsh-syntax-highlighting plugin (timeout: 60s)..."
     if [ ! -d "${zsh_custom}/plugins/zsh-syntax-highlighting" ]; then
-        su - "$REAL_USER" -c "git clone https://github.com/zsh-users/zsh-syntax-highlighting ${zsh_custom}/plugins/zsh-syntax-highlighting" >> "$LOG_FILE" 2>&1 || \
-            log_warning "Failed to clone zsh-syntax-highlighting"
+        timeout 60 su - "$REAL_USER" -c "git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting ${zsh_custom}/plugins/zsh-syntax-highlighting" >> "$LOG_FILE" 2>&1 || \
+            log_warning "Failed to clone zsh-syntax-highlighting (timeout or network error)"
     else
         log_info "zsh-syntax-highlighting already installed"
     fi
@@ -93,17 +94,67 @@ terminal_shell__oh_my_zsh__install() {
 }
 
 # ==============================================================================
+# Tool: powerlevel10k
+# ==============================================================================
+
+# Description for Powerlevel10k
+terminal_shell__powerlevel10k__description() {
+    echo "Powerlevel10k — fast, flexible Zsh theme (similar to Oh My Posh)"
+}
+
+# Check if Powerlevel10k is installed
+terminal_shell__powerlevel10k__is_installed() {
+    [ -d "${REAL_HOME}/.oh-my-zsh/custom/themes/powerlevel10k" ]
+}
+
+# Install Powerlevel10k theme for Oh My Zsh
+terminal_shell__powerlevel10k__install() {
+    log_info "Installing Powerlevel10k theme..."
+
+    local zsh_custom="${REAL_HOME}/.oh-my-zsh/custom"
+    local p10k_dir="${zsh_custom}/themes/powerlevel10k"
+
+    # ---- Pre-check: Oh My Zsh must be installed ----
+    if [ ! -d "${REAL_HOME}/.oh-my-zsh" ]; then
+        log_error "Oh My Zsh not found. Install Oh My Zsh first."
+        return 1
+    fi
+
+    # ---- Clone or update Powerlevel10k ----
+    if [ -d "$p10k_dir" ]; then
+        log_info "Powerlevel10k already cloned, pulling latest..."
+        timeout 60 su - "$REAL_USER" -c "cd '${p10k_dir}' && git pull --depth 1" >> "$LOG_FILE" 2>&1 || \
+            log_warning "Failed to update Powerlevel10k (continuing with existing)"
+    else
+        log_info "Cloning Powerlevel10k (timeout: 120s)..."
+        if ! timeout 120 su - "$REAL_USER" -c "git clone --depth=1 https://github.com/romkatv/powerlevel10k.git '${p10k_dir}'" >> "$LOG_FILE" 2>&1; then
+            log_error "Failed to clone Powerlevel10k"
+            return 1
+        fi
+    fi
+
+    # Verify
+    if [ -d "$p10k_dir" ]; then
+        log_success "Powerlevel10k theme installed"
+        return 0
+    else
+        log_error "Powerlevel10k directory not found after installation"
+        return 1
+    fi
+}
+
+# ==============================================================================
 # Tool: oh_my_zsh_config
 # ==============================================================================
 
 # Description for Oh My Zsh Config
 terminal_shell__oh_my_zsh_config__description() {
-    echo "Oh My Zsh Configuration — theme + plugins setup"
+    echo "Oh My Zsh Configuration — Powerlevel10k theme + plugins + PATH migration"
 }
 
 # Check if Oh My Zsh config is in place (theme configured in .zshrc)
 terminal_shell__oh_my_zsh_config__is_installed() {
-    grep -q 'ZSH_THEME=' "${REAL_HOME}/.zshrc" 2>/dev/null
+    grep -q 'ZSH_THEME=.*powerlevel10k' "${REAL_HOME}/.zshrc" 2>/dev/null
 }
 
 # Configure Oh My Zsh theme and plugins in .zshrc
@@ -118,14 +169,14 @@ terminal_shell__oh_my_zsh_config__install() {
         return 1
     fi
 
-    # ---- Step 2: Set theme to agnoster ----
-    log_info "Setting ZSH_THEME to agnoster..."
+    # ---- Step 2: Set theme to Powerlevel10k ----
+    log_info "Setting ZSH_THEME to powerlevel10k/powerlevel10k..."
     if grep -q '^ZSH_THEME=' "$zshrc" 2>/dev/null; then
-        sed -i 's/^ZSH_THEME=.*/ZSH_THEME="agnoster"/' "$zshrc"
+        sed -i 's/^ZSH_THEME=.*/ZSH_THEME="powerlevel10k\/powerlevel10k"/' "$zshrc"
     else
-        echo 'ZSH_THEME="agnoster"' >> "$zshrc"
+        echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >> "$zshrc"
     fi
-    log_success "Theme set to agnoster"
+    log_success "Theme set to Powerlevel10k"
 
     # ---- Step 3: Configure plugins ----
     log_info "Configuring plugins..."
@@ -136,14 +187,63 @@ terminal_shell__oh_my_zsh_config__install() {
     fi
     log_success "Plugins configured"
 
-    # ---- Step 4: Hint about bashrc migration ----
+    # ---- Step 4: PATH migration — add essential PATHs to .zshrc ----
+    log_info "Migrating essential PATH entries to .zshrc..."
+
+    # 4a: ~/.local/bin (Poetry, pip user installs)
+    if ! grep -q '\$HOME/.local/bin' "$zshrc" 2>/dev/null; then
+        log_info "Adding ~/.local/bin to .zshrc PATH..."
+        cat >> "$zshrc" << 'EOF'
+
+# Added by Dev Tool Installer — User local bin (pip, poetry)
+export PATH="$HOME/.local/bin:$PATH"
+EOF
+        log_success "~/.local/bin added to .zshrc"
+    else
+        log_debug "~/.local/bin already in .zshrc"
+    fi
+
+    # 4b: NVM (Node Version Manager)
+    if [ -d "${REAL_HOME}/.nvm" ] || [ -s "${REAL_HOME}/.nvm/nvm.sh" ]; then
+        if ! grep -q 'NVM_DIR' "$zshrc" 2>/dev/null; then
+            log_info "Adding NVM initialization to .zshrc..."
+            cat >> "$zshrc" << 'EOF'
+
+# Added by Dev Tool Installer — NVM (Node Version Manager)
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+EOF
+            log_success "NVM added to .zshrc"
+        else
+            log_debug "NVM already in .zshrc"
+        fi
+    fi
+
+    # 4c: .NET SDK (DOTNET_ROOT)
+    if [ -d "${REAL_HOME}/.dotnet" ]; then
+        if ! grep -q 'DOTNET_ROOT' "$zshrc" 2>/dev/null; then
+            log_info "Adding DOTNET_ROOT to .zshrc..."
+            cat >> "$zshrc" << 'EOF'
+
+# Added by Dev Tool Installer — .NET SDK
+export DOTNET_ROOT="$HOME/.dotnet"
+export PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"
+EOF
+            log_success "DOTNET_ROOT added to .zshrc"
+        else
+            log_debug "DOTNET_ROOT already in .zshrc"
+        fi
+    fi
+
+    # ---- Step 5: Hint about bashrc migration ----
     if [ -f "${REAL_HOME}/.bashrc" ]; then
-        log_info "Note: You may want to migrate custom aliases/PATH from .bashrc to .zshrc"
+        log_info "Note: Essential PATHs have been migrated. Check .bashrc for any custom aliases you may want to copy."
     fi
 
     chown "${REAL_USER}:${REAL_USER}" "$zshrc" 2>/dev/null || true
 
-    log_success "Oh My Zsh configured in .zshrc"
+    log_success "Oh My Zsh configured in .zshrc (Powerlevel10k + plugins + PATH)"
     return 0
 }
 
@@ -151,29 +251,29 @@ terminal_shell__oh_my_zsh_config__install() {
 # Tool: font_cascadia
 # ==============================================================================
 
-# Description for CaskaydiaMono Nerd Font
+# Description for CaskaydiaCove Nerd Font
 terminal_shell__font_cascadia__description() {
-    echo "CaskaydiaMono Nerd Font — patched font with icons for terminal"
+    echo "CaskaydiaCove Nerd Font — Cascadia Code patched with Nerd Font icons + ligatures"
 }
 
-# Check if CaskaydiaMono Nerd Font is installed
+# Check if CaskaydiaCove Nerd Font is installed
 terminal_shell__font_cascadia__is_installed() {
-    fc-list 2>/dev/null | grep -qi "CaskaydiaMono"
+    fc-list 2>/dev/null | grep -qi "CaskaydiaCove"
 }
 
-# Download and install CaskaydiaMono Nerd Font from GitHub releases
+# Download and install CaskaydiaCove Nerd Font from GitHub releases
 terminal_shell__font_cascadia__install() {
-    log_info "Installing CaskaydiaMono Nerd Font..."
+    log_info "Installing CaskaydiaCove Nerd Font..."
 
     local font_dir="${REAL_HOME}/.local/share/fonts"
-    local font_zip="${TEMP_DIR}/CascadiaMono.zip"
-    local font_extract_dir="${TEMP_DIR}/CascadiaMono"
-    local download_url="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/CascadiaMono.zip"
+    local font_zip="${TEMP_DIR}/CascadiaCode.zip"
+    local font_extract_dir="${TEMP_DIR}/CascadiaCode"
+    local download_url="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/CascadiaCode.zip"
 
     # ---- Step 1: Download font zip ----
-    log_info "Downloading CascadiaMono Nerd Font..."
+    log_info "Downloading CascadiaCode Nerd Font (CaskaydiaCove)..."
     if ! download_file "$download_url" "$font_zip"; then
-        log_error "Failed to download CaskaydiaMono Nerd Font"
+        log_error "Failed to download CaskaydiaCove Nerd Font"
         return 1
     fi
 
@@ -181,7 +281,7 @@ terminal_shell__font_cascadia__install() {
     log_info "Extracting fonts..."
     mkdir -p "$font_extract_dir"
     if ! unzip -o "$font_zip" -d "$font_extract_dir" >> "$LOG_FILE" 2>&1; then
-        log_error "Failed to extract CascadiaMono.zip"
+        log_error "Failed to extract CascadiaCode.zip"
         rm -f "$font_zip"
         return 1
     fi
@@ -214,8 +314,8 @@ terminal_shell__font_cascadia__install() {
     rm -rf "$font_zip" "$font_extract_dir"
 
     # Verify
-    if fc-list 2>/dev/null | grep -qi "CaskaydiaMono"; then
-        log_success "CaskaydiaMono Nerd Font installed successfully"
+    if fc-list 2>/dev/null | grep -qi "CaskaydiaCove"; then
+        log_success "CaskaydiaCove Nerd Font installed successfully"
         return 0
     else
         log_warning "Font files installed but fc-list may need a re-login to detect"
@@ -359,10 +459,10 @@ terminal_shell__gnome_terminal__install() {
 
     log_info "Configuring GNOME Terminal profile: ${profile}"
 
-    # ---- Set custom font ----
-    log_info "Setting terminal font to CaskaydiaMono Nerd Font 12..."
+    # ---- Set custom font (CaskaydiaCove Nerd Font Mono for terminal) ----
+    log_info "Setting terminal font to CaskaydiaCove Nerd Font Mono 12..."
     dconf write "${profile_path}use-system-font" "false" 2>> "$LOG_FILE"
-    dconf write "${profile_path}font" "'CaskaydiaMono Nerd Font 12'" 2>> "$LOG_FILE"
+    dconf write "${profile_path}font" "'CaskaydiaCove Nerd Font Mono 12'" 2>> "$LOG_FILE"
 
     # ---- Set color scheme (Solarized Dark-like) ----
     log_info "Setting terminal color scheme..."
@@ -386,7 +486,8 @@ terminal_shell__gnome_terminal__install() {
 # ==============================================================================
 
 register_tool "terminal_shell" "oh_my_zsh" "Oh My Zsh"
+register_tool "terminal_shell" "powerlevel10k" "Powerlevel10k Theme" "true"
 register_tool "terminal_shell" "oh_my_zsh_config" "Oh My Zsh Config" "true"
-register_tool "terminal_shell" "font_cascadia" "CaskaydiaMono Nerd Font" "true"
+register_tool "terminal_shell" "font_cascadia" "CaskaydiaCove Nerd Font" "true"
 register_tool "terminal_shell" "font_thsarabun" "TH Sarabun PSK" "true"
 register_tool "terminal_shell" "gnome_terminal" "GNOME Terminal Config" "true"

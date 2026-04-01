@@ -27,7 +27,7 @@
 ### DevOps (devops) — 3 tools
 - **docker** — Docker Engine install จาก official APT repo (remove old → GPG key → add repo → install docker-ce + cli + containerd + buildx + compose plugin → usermod -aG docker)
 - **docker_compose** — Docker Compose v2 plugin detection + fallback standalone binary
-- **docker_config** — daemon.json (log rotation, address pool) + pgvector/pgvector:pg16 image pull with retry
+- **docker_config** — daemon.json (log rotation, address pool) + restart Docker service
 
 ### Editors (editors) — 3 tools
 - **vscode** — VS Code .deb download + dpkg install (ไม่ใช้ snap เพื่อ full file access)
@@ -51,6 +51,6 @@
 
 ## หมายเหตุ
 - font/THSARABUN_PSK.zip ยังเป็น placeholder (.gitkeep) — ต้องใส่ไฟล์จริงก่อนใช้งาน
-- pgvector pull อาจ fail ถ้า Docker ยัง start ไม่เสร็จ — graceful skip + warning
+- Docker config อาจ fail ถ้า Docker service ยัง start ไม่เสร็จ — graceful skip + warning
 - VS Code extensions ต้องรันเป็น real user (ไม่ใช่ root)
 - GNOME Terminal config ต้องเปิด terminal อย่างน้อย 1 ครั้งก่อนจึงจะมี profile

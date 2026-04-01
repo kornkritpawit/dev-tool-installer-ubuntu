@@ -104,8 +104,8 @@ python__poetry__is_installed() {
 python__poetry__install() {
     log_info "Installing Poetry via official installer..."
 
-    # Download and run the official installer
-    if curl -sSL https://install.python-poetry.org | python3 - >> "$LOG_FILE" 2>&1; then
+    # Download and run the official installer (timeout: 120s)
+    if timeout 120 bash -c 'curl -sSL --connect-timeout 30 --max-time 60 https://install.python-poetry.org | python3 -' >> "$LOG_FILE" 2>&1; then
         log_success "Poetry installed successfully"
     else
         log_error "Poetry installation failed"
@@ -167,8 +167,8 @@ python__uv__is_installed() {
 python__uv__install() {
     log_info "Installing uv via official installer..."
 
-    # Download and run the official installer
-    if curl -LsSf https://astral.sh/uv/install.sh | sh >> "$LOG_FILE" 2>&1; then
+    # Download and run the official installer (timeout: 120s)
+    if timeout 120 bash -c 'curl -LsSf --connect-timeout 30 --max-time 60 https://astral.sh/uv/install.sh | sh' >> "$LOG_FILE" 2>&1; then
         log_success "uv installed successfully"
     else
         log_error "uv installation failed"

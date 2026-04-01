@@ -36,7 +36,7 @@ dev-tool-installer-ubuntu/
 │   ├── python.sh                       # python3, pip, venv, poetry, uv
 │   ├── nodejs.sh                       # nvm, node 20, npm, pnpm, nodemon, ts
 │   ├── dotnet.sh                       # dotnet-sdk-10.0
-│   ├── devops.sh                       # docker-ce, docker-compose, pgvector
+│   ├── devops.sh                       # docker-ce, docker-compose, daemon config
 │   ├── editors.sh                      # VS Code + extensions + settings
 │   ├── terminal-shell.sh              # oh-my-zsh, fonts, GNOME Terminal, profiles
 │   ├── applications.sh                 # Postman, RustDesk, WireGuard, browsers
@@ -141,7 +141,7 @@ declare -a TOOLS=(
     "dotnet:dotnet_sdk:NET 10 SDK:false"
     "devops:docker_ce:Docker CE:false"
     "devops:docker_compose:Docker Compose:false"
-    "devops:docker_pgvector:pgvector Image:false"
+    "devops:docker_config:Docker Configuration:false"
     "editors:vscode:Visual Studio Code:false"
     "editors:vscode_extensions:VS Code Extensions:true"
     "editors:vscode_settings:VS Code Settings:true"
@@ -226,7 +226,7 @@ tool_install() {
 | 19 | .NET 10 SDK | dotnet-sdk-10.0 | .NET | Microsoft APT repo | `command -v dotnet` |
 | 20 | Docker Desktop | docker-ce | DevOps | Docker APT repo | `command -v docker` |
 | 21 | Docker Compose | docker-compose-plugin | DevOps | Docker APT repo | `docker compose version` |
-| 22 | pgvector image | pgvector/pgvector:pg17 | DevOps | docker pull | `docker images \| grep pgvector` |
+| 22 | Docker Configuration | daemon.json | DevOps | config file | `[ -f /etc/docker/daemon.json ]` |
 | 23 | VS Code | code | Editors | Microsoft APT repo | `command -v code` |
 | 24 | 31 Extensions | same extensions | Editors | code --install-extension | `code --list-extensions` |
 | 25 | VS Code Settings | settings.json | Editors | config file copy/merge | file existence check |
@@ -568,7 +568,7 @@ editors__vscode_settings__install() {
 |------|---------|----------|-----------|-------------|
 | Docker CE | Docker APT repo + `apt install docker-ce docker-ce-cli containerd.io` | snap install docker | `command -v docker` | `sudo usermod -aG docker $USER` |
 | Docker Compose | `apt install docker-compose-plugin` | — | `docker compose version` | — |
-| pgvector image | `docker pull pgvector/pgvector:pg17` | — | `docker images \| grep pgvector` | — |
+| Docker Configuration | write daemon.json + restart | — | `[ -f /etc/docker/daemon.json ]` | log rotation, address pool |
 
 ### 7.6 Editors and IDEs
 
@@ -697,9 +697,9 @@ check_dependencies() {
                 tool_install "nodejs" "nvm" || return 1
             fi
             ;;
-        devops__docker_pgvector)
+        devops__docker_config)
             if ! tool_is_installed "devops" "docker_ce"; then
-                log_warn "pgvector requires Docker. Installing Docker first..."
+                log_warn "Docker config requires Docker. Installing Docker first..."
                 tool_install "devops" "docker_ce" || return 1
             fi
             ;;
