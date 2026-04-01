@@ -20,12 +20,11 @@
 - [`installers/dotnet.sh`](../../installers/dotnet.sh) — 🟣 .NET Development (1 tool): .NET SDK latest LTS
 - [`installers/devops.sh`](../../installers/devops.sh) — 🐳 DevOps Tools (3 tools): Docker Engine, Docker Compose, Docker Configuration
 - [`installers/editors.sh`](../../installers/editors.sh) — 📝 Editors and IDEs (3 tools): VS Code, extensions, settings
-- [`installers/terminal-shell.sh`](../../installers/terminal-shell.sh) — 🖥️ Terminal and Shell (5 tools): Oh My Posh, theme, CaskaydiaMono font, TH Sarabun PSK, GNOME Terminal
+- [`installers/terminal-shell.sh`](../../installers/terminal-shell.sh) — 🖥️ Terminal and Shell (5 tools): Oh My Zsh, Oh My Zsh Config, CaskaydiaMono font, TH Sarabun PSK, GNOME Terminal
 - [`installers/applications.sh`](../../installers/applications.sh) — 📦 Applications (7 tools): Postman, RustDesk, WireGuard, Chrome, Firefox, Brave, Opera
 - [`installers/desktop-settings.sh`](../../installers/desktop-settings.sh) — 🖥️ Desktop Settings (2 tools): GNOME settings, browser privacy policies
 
 ### Configuration Templates
-- [`config/paradox.omp.json`](../../config/paradox.omp.json) — Oh My Posh theme configuration
 - [`config/vscode-settings.json`](../../config/vscode-settings.json) — VS Code user settings template
 
 ### Test Scripts

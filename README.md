@@ -40,7 +40,7 @@ chmod +x install.sh
 | 🟣 .NET Development | 1 | .NET SDK (latest LTS) |
 | 🐳 DevOps Tools | 3 | Docker Engine, Docker Compose, Docker Configuration (daemon.json + pgvector) |
 | 📝 Editors and IDEs | 3 | VS Code + 31 extensions + settings.json |
-| 🖥️ Terminal and Shell | 5 | Oh My Posh, Oh My Posh theme, CaskaydiaMono Nerd Font, TH Sarabun PSK, GNOME Terminal config |
+| 🖥️ Terminal and Shell | 5 | Oh My Zsh, Oh My Zsh Config, CaskaydiaMono Nerd Font, TH Sarabun PSK, GNOME Terminal config |
 | 📦 Applications | 7 | Postman, RustDesk, WireGuard, Chrome, Firefox, Brave, Opera |
 | 🖥️ Desktop Settings | 3 | GNOME desktop settings, browser privacy policies, LibreOffice configuration |
 
@@ -64,11 +64,11 @@ dev-tool-installer-ubuntu/
 │   ├── dotnet.sh                       # 🟣 .NET SDK latest LTS (1 tool)
 │   ├── devops.sh                       # 🐳 Docker CE, Compose, daemon config (3 tools)
 │   ├── editors.sh                      # 📝 VS Code + extensions + settings (3 tools)
-│   ├── terminal-shell.sh               # 🖥️ Oh My Posh, fonts, GNOME Terminal (5 tools)
+│   ├── terminal-shell.sh               # 🖥️ Oh My Zsh, config, fonts, GNOME Terminal (5 tools)
 │   ├── applications.sh                 # 📦 Postman, RustDesk, WireGuard, browsers (7 tools)
 │   └── desktop-settings.sh             # 🖥️ GNOME settings, browser policies, LibreOffice config (3 tools)
 ├── config/
-│   ├── paradox.omp.json                # Oh My Posh theme configuration
+│   ├── .gitkeep
 │   └── vscode-settings.json            # VS Code user settings template
 ├── font/
 │   └── (THSARABUN_PSK.zip)            # Bundled TH Sarabun PSK font (place here)

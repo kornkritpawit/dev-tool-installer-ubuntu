@@ -121,7 +121,6 @@ check_file "installers/desktop-settings.sh" "installers/desktop-settings.sh"
 echo ""
 echo "--- Config Files ---"
 check_json "config/vscode-settings.json" "config/vscode-settings.json"
-check_json "config/paradox.omp.json" "config/paradox.omp.json"
 
 echo ""
 echo "--- Documentation ---"

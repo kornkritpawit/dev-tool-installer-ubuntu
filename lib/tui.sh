@@ -28,6 +28,8 @@ tui_detect_size() {
     # List height for checklist/menu items
     LIST_HEIGHT=$((DIALOG_HEIGHT - 8))
     [ "$LIST_HEIGHT" -lt 5 ] && LIST_HEIGHT=5
+
+    return 0
 }
 
 # Initialize TUI sizes on source

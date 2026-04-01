@@ -38,11 +38,11 @@ dev-tool-installer-ubuntu/
 │   ├── dotnet.sh                       # dotnet-sdk-10.0
 │   ├── devops.sh                       # docker-ce, docker-compose, pgvector
 │   ├── editors.sh                      # VS Code + extensions + settings
-│   ├── terminal-shell.sh              # oh-my-posh, fonts, GNOME Terminal, profiles
+│   ├── terminal-shell.sh              # oh-my-zsh, fonts, GNOME Terminal, profiles
 │   ├── applications.sh                 # Postman, RustDesk, WireGuard, browsers
 │   └── desktop-settings.sh            # GNOME settings, browser policies
 ├── config/
-│   ├── paradox.omp.json               # Oh My Posh theme (copy from Windows)
+│   ├── .gitkeep                       # (paradox.omp.json removed — Oh My Zsh uses ~/.oh-my-zsh themes)
 │   ├── vscode-settings.json           # VS Code user settings template
 │   ├── vscode-extensions.txt          # VS Code extensions list (1 per line)
 │   ├── vscode-extensions-uninstall.txt # Extensions to remove
@@ -145,7 +145,7 @@ declare -a TOOLS=(
     "editors:vscode:Visual Studio Code:false"
     "editors:vscode_extensions:VS Code Extensions:true"
     "editors:vscode_settings:VS Code Settings:true"
-    "terminal_shell:oh_my_posh:Oh My Posh:false"
+    "terminal_shell:oh_my_zsh:Oh My Zsh:false"
     "terminal_shell:font_cascadia:CascadiaMono Nerd Font:true"
     "terminal_shell:font_thsarabun:TH Sarabun PSK:true"
     "terminal_shell:gnome_terminal:GNOME Terminal Config:true"
@@ -230,11 +230,11 @@ tool_install() {
 | 23 | VS Code | code | Editors | Microsoft APT repo | `command -v code` |
 | 24 | 31 Extensions | same extensions | Editors | code --install-extension | `code --list-extensions` |
 | 25 | VS Code Settings | settings.json | Editors | config file copy/merge | file existence check |
-| 26 | Oh My Posh | oh-my-posh | Terminal | curl binary | `command -v oh-my-posh` |
+| 26 | Oh My Zsh | oh-my-zsh | Terminal | oh-my-zsh install script | `[ -d "$HOME/.oh-my-zsh" ]` |
 | 27 | CascadiaMono NF | CascadiaMono NF | Terminal | download + fc-cache | `fc-list \| grep CaskaydiaMono` |
 | 28 | TH Sarabun | TH Sarabun PSK | Terminal | bundled zip + fc-cache | `fc-list \| grep Sarabun` |
 | 29 | Windows Terminal config | GNOME Terminal config | Terminal | gsettings/dconf | always run |
-| 30 | PowerShell profile | .bashrc / .zshrc | Terminal | shell config append | always run |
+| 30 | PowerShell profile | .zshrc (oh-my-zsh config) | Terminal | shell config append | always run |
 | 31 | Postman | Postman | Applications | snap | `snap list postman` |
 | 32 | RustDesk | RustDesk | Applications | .deb download | `command -v rustdesk` |
 | 33 | WireGuard | wireguard | Applications | apt | `command -v wg` |
@@ -474,11 +474,12 @@ nodejs__nvm__install() {
 }
 ```
 
-### 6.5 Direct Binary Download Pattern
+### 6.5 Oh My Zsh Install Pattern
 
 ```bash
-terminal_shell__oh_my_posh__install() {
-    curl -fsSL https://ohmyposh.dev/install.sh | bash -s
+terminal_shell__oh_my_zsh__install() {
+    # Install Oh My Zsh (unattended)
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     return $?
 }
 ```
@@ -581,11 +582,11 @@ editors__vscode_settings__install() {
 
 | Tool | Primary | Fallback | Detection | Post-Config |
 |------|---------|----------|-----------|-------------|
-| Oh My Posh | curl install script | brew | `command -v oh-my-posh` | copy theme, configure profile |
+| Oh My Zsh | oh-my-zsh install script | git clone | `[ -d "$HOME/.oh-my-zsh" ]` | configure .zshrc, set theme/plugins |
 | CascadiaMono NF | download zip + extract to ~/.local/share/fonts + fc-cache | — | `fc-list \| grep CaskaydiaMono` | — |
 | TH Sarabun PSK | extract bundled zip to ~/.local/share/fonts + fc-cache | — | `fc-list \| grep Sarabun` | — |
 | GNOME Terminal | gsettings set | dconf write | always run | font, color scheme |
-| Shell Profile | append to .bashrc/.zshrc | — | always run | oh-my-posh init, nvm source |
+| Shell Profile | append to .zshrc | — | always run | oh-my-zsh config, nvm source |
 
 ### 7.8 Applications
 
@@ -800,7 +801,7 @@ ensure_sudo() {
 |-----------|--------|
 | nvm install | user-space (~/.nvm) |
 | npm install -g | user-space via nvm |
-| oh-my-posh install | user-space |
+| oh-my-zsh install | user-space (~/.oh-my-zsh) |
 | VS Code extensions | user-space |
 | Font install to ~/.local | user home directory |
 | .bashrc/.zshrc edit | user home directory |
@@ -814,7 +815,7 @@ ensure_sudo() {
 
 | File | Source | Destination | Merge Strategy |
 |------|--------|-------------|---------------|
-| `config/paradox.omp.json` | bundled | `~/.config/oh-my-posh/paradox.omp.json` | overwrite |
+| — (oh-my-zsh) | oh-my-zsh manages themes via `~/.oh-my-zsh/themes/` | `~/.zshrc` (ZSH_THEME setting) | oh-my-zsh built-in |
 | `config/vscode-settings.json` | bundled | `~/.config/Code/User/settings.json` | jq merge (keep existing) |
 | `config/vscode-extensions.txt` | bundled | — (used as input list) | — |
 | `config/docker-daemon.json` | bundled | `/etc/docker/daemon.json` | jq merge (sudo) |
@@ -834,8 +835,9 @@ ensure_sudo() {
 
 ```bash
 # === Dev Tool Installer Configuration ===
-# Oh My Posh
-eval "$(oh-my-posh init bash --config ~/.config/oh-my-posh/paradox.omp.json)"
+# Oh My Zsh is configured via ~/.zshrc (managed by oh-my-zsh itself)
+# ZSH_THEME="robbyrussell"
+# plugins=(git docker nvm)
 
 # NVM
 export NVM_DIR="$HOME/.nvm"
@@ -941,7 +943,7 @@ graph TB
     end
     
     subgraph Config
-        O[config/paradox.omp.json]
+        O[oh-my-zsh themes]
         P[config/vscode-settings.json]
         Q[config/vscode-extensions.txt]
         R[config/docker-daemon.json]
