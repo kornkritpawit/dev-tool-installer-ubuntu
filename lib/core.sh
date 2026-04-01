@@ -52,9 +52,13 @@ INSTALL_SKIPPED=0
 INSTALL_TOTAL=0
 
 # Arrays to track results
-declare -a FAILED_TOOLS=()
-declare -a SUCCESS_TOOLS=()
-declare -a SKIPPED_TOOLS=()
+# Note: Do NOT use "declare -a" here — when this file is sourced inside a
+# function (e.g. source_libraries()), "declare" creates a LOCAL variable
+# that is destroyed when the function returns, causing "unbound variable"
+# errors under set -u.  Plain assignment creates a GLOBAL variable.
+FAILED_TOOLS=()
+SUCCESS_TOOLS=()
+SKIPPED_TOOLS=()
 
 # ------------------------------------------------------------------------------
 # Real User Detection (for sudo context)

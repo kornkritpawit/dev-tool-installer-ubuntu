@@ -17,7 +17,11 @@
 # ------------------------------------------------------------------------------
 # Format: "category_id:Display Name:Description"
 
-declare -a CATEGORIES=(
+# Note: Do NOT use "declare -a" here — when this file is sourced inside a
+# function (e.g. source_libraries()), "declare" creates a LOCAL variable
+# that is destroyed when the function returns, causing "unbound variable"
+# errors under set -u.  Plain assignment creates a GLOBAL variable.
+CATEGORIES=(
     "system_essentials:System Essentials:Essential build tools and utilities"
     "python:Python Development:Python runtime and package managers"
     "nodejs:Node.js Development:Node.js runtime and JavaScript tools"
@@ -36,7 +40,7 @@ declare -a CATEGORIES=(
 # - always_run: "true" = always execute install even if "installed"
 #               "false" = skip if already installed
 
-declare -a TOOLS=()
+TOOLS=()
 
 # Tools will be populated when installer modules are sourced.
 # Each installer file (installers/*.sh) should call register_tool() to add
@@ -50,7 +54,7 @@ declare -a TOOLS=()
 # Selected Tools (populated by TUI)
 # ------------------------------------------------------------------------------
 
-declare -a SELECTED_TOOLS=()
+SELECTED_TOOLS=()
 
 # ------------------------------------------------------------------------------
 # Registration Functions
